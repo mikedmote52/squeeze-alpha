@@ -29,7 +29,7 @@ class MarketIntelligence:
     
     # News & Events
     breaking_news: List[Dict[str, Any]]
-    analyst_upgrades: List[Dict[str, Any]]
+    analyst_updates: Dict[str, Any]  
     earnings_events: List[Dict[str, Any]]
     
     # Regulatory & Political
@@ -108,7 +108,7 @@ class ComprehensiveIntelligenceEngine:
             twitter_sentiment=safe_results[1],
             youtube_mentions=safe_results[2],
             breaking_news=safe_results[3],
-            analyst_upgrades=safe_results[4],
+            analyst_updates=safe_results[4],
             earnings_events=safe_results[5],
             fda_events=safe_results[6],
             congressional_trades=safe_results[7],
@@ -416,6 +416,94 @@ class ComprehensiveIntelligenceEngine:
             
         except Exception as e:
             return [{"error": f"News gathering error: {str(e)}"}]
+    
+    async def get_analyst_updates(self, ticker: str) -> Dict[str, Any]:
+        """Get Wall Street analyst ratings, price targets, and recommendations"""
+        
+        try:
+            analyst_data = {
+                "consensus_rating": "HOLD",
+                "price_target": 0.0,
+                "analyst_count": 0,
+                "upgrades": [],
+                "downgrades": [],
+                "recent_reports": []
+            }
+            
+            # Use Alpha Vantage API for analyst data
+            av_key = self.secrets.get_api_key('ALPHA_VANTAGE_API_KEY')
+            if av_key:
+                import requests
+                
+                # Get analyst recommendations
+                url = f"https://www.alphavantage.co/query"
+                params = {
+                    'function': 'OVERVIEW',
+                    'symbol': ticker,
+                    'apikey': av_key
+                }
+                
+                response = requests.get(url, params=params, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    analyst_data.update({
+                        "analyst_target_price": float(data.get('AnalystTargetPrice', 0) or 0),
+                        "trailing_pe": float(data.get('TrailingPE', 0) or 0),
+                        "forward_pe": float(data.get('ForwardPE', 0) or 0),
+                        "peg_ratio": float(data.get('PEGRatio', 0) or 0),
+                        "eps_estimate": float(data.get('ForwardAnnualDividendYield', 0) or 0),
+                        "revenue_estimate": data.get('RevenueTTM', 'N/A')
+                    })
+            
+            return analyst_data
+            
+        except Exception as e:
+            return {"error": f"Analyst data error: {str(e)}"}
+    
+    async def get_earnings_events(self, ticker: str) -> List[Dict[str, Any]]:
+        """Get upcoming earnings dates and estimates"""
+        
+        try:
+            earnings_data = []
+            
+            # Use Financial Modeling Prep API for earnings calendar
+            fmp_key = self.secrets.get_api_key('FMP_API_KEY')
+            if fmp_key:
+                import requests
+                from datetime import datetime, timedelta
+                
+                # Get earnings calendar for next 30 days
+                today = datetime.now().strftime('%Y-%m-%d')
+                future_date = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
+                
+                url = f"https://financialmodelingprep.com/api/v3/earning_calendar"
+                params = {
+                    'from': today,
+                    'to': future_date,
+                    'apikey': fmp_key
+                }
+                
+                response = requests.get(url, params=params, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Filter for specific ticker
+                    for event in data:
+                        if event.get('symbol') == ticker:
+                            earnings_data.append({
+                                "date": event.get('date'),
+                                "eps_estimate": event.get('epsEstimated'),
+                                "eps_actual": event.get('eps'),
+                                "revenue_estimate": event.get('revenueEstimated'),
+                                "revenue_actual": event.get('revenue'),
+                                "time": event.get('time', 'Unknown')
+                            })
+            
+            return earnings_data[:5]  # Return next 5 earnings events
+            
+        except Exception as e:
+            return [{"error": f"Earnings data error: {str(e)}"}]
     
     async def get_fda_events(self, ticker: str) -> List[Dict[str, Any]]:
         """Get FDA regulatory events and calendar"""

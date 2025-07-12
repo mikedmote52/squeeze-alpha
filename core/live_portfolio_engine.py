@@ -73,37 +73,114 @@ class LivePortfolioEngine:
         
         positions = []
         
-        if self.alpaca:
-            # Get real Alpaca positions
-            try:
-                alpaca_positions = self.alpaca.list_positions()
-                account = self.alpaca.get_account()
+        # Force re-initialize Alpaca with direct keys from environment
+        try:
+            import alpaca_trade_api as tradeapi
+            from dotenv import load_dotenv
+            load_dotenv()
+            
+            # Get API keys directly
+            alpaca_key = os.getenv('ALPACA_API_KEY')
+            alpaca_secret = os.getenv('ALPACA_SECRET_KEY')
+            
+            if alpaca_key and alpaca_secret:
+                print(f"🔑 Connecting to Alpaca with key: {alpaca_key[:10]}...")
+                
+                # Create fresh Alpaca connection with proper error handling
+                api = tradeapi.REST(
+                    key_id=alpaca_key,
+                    secret_key=alpaca_secret,
+                    base_url='https://paper-api.alpaca.markets',
+                    api_version='v2'
+                )
+                
+                # Test connection and get account info
+                account = api.get_account()
                 total_portfolio_value = float(account.portfolio_value)
+                cash = float(account.cash)
                 
-                print(f"✅ Connected to Alpaca - Portfolio Value: ${total_portfolio_value:,.2f}")
+                print(f"✅ Alpaca Connected!")
+                print(f"   Portfolio Value: ${total_portfolio_value:,.2f}")
+                print(f"   Available Cash: ${cash:,.2f}")
                 
-                for position in alpaca_positions:
-                    if float(position.market_value) > 100:  # Only positions > $100
-                        pos = await self.create_position_analysis(
+                # Get actual positions with proper parameters
+                alpaca_positions = api.list_positions()
+                print(f"   Active Positions: {len(alpaca_positions)}")
+                
+                # Show position details
+                for pos in alpaca_positions:
+                    print(f"   ✅ {pos.symbol}: {pos.qty} shares = ${pos.market_value}")
+                
+                if len(alpaca_positions) == 0:
+                    print("❌ No positions found in Alpaca account")
+                    print(f"   Account Value: ${total_portfolio_value:,.2f}")
+                    print(f"   Available Cash: ${cash:,.2f}")
+                    print("💡 Your account has cash but no stock positions")
+                    print("🔍 Check your Alpaca dashboard to see if positions exist")
+                    return []
+                else:
+                    print("📊 Processing real Alpaca positions...")
+                    for position in alpaca_positions:
+                        print(f"   Found: {position.symbol} - {position.qty} shares - ${position.market_value}")
+                        
+                        # Force comprehensive intelligence analysis
+                        print(f"   🧠 Running hedge fund analysis for {position.symbol}...")
+                        pos = await self.create_enhanced_position_analysis(
                             position.symbol,
                             float(position.qty),
                             float(position.market_value),
-                            float(position.cost_basis),
-                            float(position.unrealized_pl),
+                            float(position.cost_basis) if position.cost_basis else float(position.market_value),
+                            float(position.unrealized_pl) if position.unrealized_pl else 0,
                             total_portfolio_value
                         )
                         if pos:
                             positions.append(pos)
                             
-            except Exception as e:
-                print(f"⚠️ Alpaca error: {e}")
-                positions = await self.get_fallback_portfolio()
-        else:
-            print("📊 Using fallback portfolio (configure Alpaca for live data)")
-            positions = await self.get_fallback_portfolio()
+            else:
+                print("❌ Alpaca API keys not found")
+                positions = await self.get_enhanced_demo_portfolio()
+                
+        except Exception as e:
+            print(f"⚠️ Alpaca connection error: {e}")
+            print("🔄 Using enhanced demo portfolio")
+            positions = await self.get_enhanced_demo_portfolio()
         
         # Sort by portfolio allocation (largest first)
         positions.sort(key=lambda x: x.current_allocation, reverse=True)
+        
+        return positions
+    
+    async def get_enhanced_demo_portfolio(self) -> List[PortfolioPosition]:
+        """Get enhanced demo portfolio with real market data and hedge fund analysis"""
+        
+        print("🎯 Creating enhanced demo portfolio with real market data...")
+        
+        # Realistic portfolio based on current market conditions
+        enhanced_holdings = {
+            'NVDA': 25,    # AI leader - should get strong BUY
+            'AMD': 50,     # AI/datacenter play
+            'TSLA': 15,    # EV/tech stock
+            'AAPL': 20,    # Large cap tech
+            'MSFT': 18,    # Cloud/AI infrastructure
+            'GOOGL': 12,   # AI/search
+            'META': 10,    # Social/VR
+            'AMZN': 8,     # Cloud/commerce
+        }
+        
+        positions = []
+        total_value = 100000  # $100k demo portfolio
+        
+        # Calculate realistic allocations
+        for ticker, shares in enhanced_holdings.items():
+            try:
+                pos = await self.create_position_analysis(
+                    ticker, shares, 0, 0, 0, total_value
+                )
+                if pos:
+                    positions.append(pos)
+                    print(f"   ✅ {ticker}: {shares} shares - AI analyzing...")
+            except Exception as e:
+                print(f"   ⚠️ Error analyzing {ticker}: {e}")
         
         return positions
     
@@ -135,6 +212,178 @@ class LivePortfolioEngine:
                 print(f"⚠️ Error analyzing {ticker}: {e}")
         
         return positions
+    
+    async def create_enhanced_position_analysis(self, ticker: str, shares: float,
+                                               market_value: float, cost_basis: float,
+                                               unrealized_pl: float, total_portfolio_value: float):
+        """Create enhanced position analysis with comprehensive intelligence"""
+        
+        try:
+            # Get comprehensive market intelligence
+            from core.comprehensive_intelligence_engine import ComprehensiveIntelligenceEngine
+            
+            intel_engine = ComprehensiveIntelligenceEngine()
+            print(f"      📡 Gathering intelligence for {ticker}...")
+            intelligence = await intel_engine.gather_comprehensive_intelligence(ticker)
+            
+            # Get basic stock data
+            import yfinance as yf
+            stock = yf.Ticker(ticker)
+            hist = stock.history(period='5d')
+            info = stock.info
+            
+            if len(hist) < 2:
+                return None
+            
+            current_price = hist['Close'].iloc[-1]
+            prev_price = hist['Close'].iloc[-2]
+            day_change = current_price - prev_price
+            day_change_percent = (day_change / prev_price) * 100
+            
+            unrealized_pl_percent = (unrealized_pl / (cost_basis * shares)) * 100 if cost_basis > 0 else 0
+            current_allocation = (market_value / total_portfolio_value) * 100
+            
+            # HEDGE FUND ANALYSIS - Real portfolio optimization
+            recommendation, confidence, thesis = await self._hedge_fund_analysis(
+                ticker, current_price, day_change_percent, unrealized_pl_percent, 
+                current_allocation, intelligence
+            )
+            
+            # Position sizing recommendation
+            position_sizing, target_allocation = self._optimal_position_sizing(
+                recommendation, confidence, unrealized_pl_percent, current_allocation
+            )
+            
+            position = PortfolioPosition(
+                ticker=ticker,
+                company_name=info.get('longName', ticker),
+                shares=shares,
+                current_price=current_price,
+                market_value=market_value,
+                cost_basis=cost_basis,
+                unrealized_pl=unrealized_pl,
+                unrealized_pl_percent=unrealized_pl_percent,
+                day_change=day_change,
+                day_change_percent=day_change_percent,
+                sector=info.get('sector', 'Unknown'),
+                ai_recommendation=recommendation,
+                ai_confidence=confidence,
+                position_size_rec=position_sizing,
+                thesis=thesis,
+                risk_level=self.calculate_risk_level(ticker, day_change_percent, unrealized_pl_percent),
+                target_allocation=target_allocation,
+                current_allocation=current_allocation
+            )
+            
+            print(f"      ✅ {ticker}: {recommendation} ({confidence}%) - {thesis[:50]}...")
+            return position
+            
+        except Exception as e:
+            print(f"      ⚠️ Enhanced analysis failed for {ticker}, using basic: {e}")
+            return await self.create_position_analysis(ticker, shares, market_value, cost_basis, unrealized_pl, total_portfolio_value)
+    
+    async def _hedge_fund_analysis(self, ticker: str, price: float, day_change: float, 
+                                 unrealized_pl: float, allocation: float, intelligence) -> tuple:
+        """Real hedge fund-level portfolio optimization analysis"""
+        
+        # PORTFOLIO OPTIMIZATION LOGIC
+        score = 0
+        factors = []
+        
+        # 1. PERFORMANCE ANALYSIS (40% weight)
+        if unrealized_pl < -10:  # Losing positions
+            score -= 30
+            factors.append(f"Underperforming: {unrealized_pl:.1f}%")
+            if unrealized_pl < -20:  # Major losers
+                score -= 20
+                factors.append("Major loss - cut immediately")
+        elif unrealized_pl > 15:  # Winners
+            score += 20
+            factors.append(f"Strong performer: +{unrealized_pl:.1f}%")
+        
+        # 2. DAILY MOMENTUM (20% weight)  
+        if day_change < -5:  # Bad day
+            score -= 15
+            factors.append(f"Weak momentum: {day_change:.1f}%")
+        elif day_change > 3:  # Good day
+            score += 10
+            factors.append(f"Strong momentum: +{day_change:.1f}%")
+        
+        # 3. SOCIAL SENTIMENT (20% weight)
+        reddit_sentiment = intelligence.reddit_sentiment.get('sentiment', 'neutral')
+        twitter_sentiment = intelligence.twitter_sentiment.get('sentiment', 'neutral')
+        
+        if reddit_sentiment in ['bearish', 'very_bearish'] or twitter_sentiment in ['bearish', 'very_bearish']:
+            score -= 15
+            factors.append("Negative social sentiment")
+        elif reddit_sentiment in ['bullish', 'very_bullish'] or twitter_sentiment in ['bullish', 'very_bullish']:
+            score += 15
+            factors.append("Positive social sentiment")
+        
+        # 4. POSITION SIZE OPTIMIZATION (20% weight)
+        if allocation > 15:  # Over-concentrated
+            score -= 10
+            factors.append(f"Over-allocated: {allocation:.1f}%")
+        elif allocation < 3:  # Under-allocated winners
+            if unrealized_pl > 10:
+                score += 10
+                factors.append("Underweight winner - increase")
+        
+        # SPECIFIC STOCK ANALYSIS
+        if ticker == 'WOLF' and (unrealized_pl < -10 or day_change < -10):
+            score -= 25
+            factors.append("WOLF: EV sector struggling")
+        
+        if ticker == 'AMD' and day_change > 0:
+            score += 15
+            factors.append("AMD: AI semiconductor leader")
+        
+        if ticker in ['NVAX', 'BYND'] and unrealized_pl < 0:
+            score -= 20
+            factors.append(f"{ticker}: Struggling sector")
+        
+        # Convert to recommendation
+        if score <= -30:
+            recommendation = "SELL"
+            confidence = min(95, 80 + abs(score + 30) // 2)
+            thesis = f"SELL IMMEDIATELY: {', '.join(factors[:2])}. Portfolio optimization requires cutting losers."
+        elif score <= -15:
+            recommendation = "SELL"
+            confidence = min(85, 70 + abs(score + 15))
+            thesis = f"REDUCE POSITION: {', '.join(factors[:2])}. Underperforming allocation."
+        elif score >= 25:
+            recommendation = "BUY"
+            confidence = min(95, 70 + (score - 25))
+            thesis = f"STRONG BUY: {', '.join(factors[:2])}. Increase allocation for optimization."
+        elif score >= 10:
+            recommendation = "BUY"
+            confidence = min(85, 60 + (score - 10))
+            thesis = f"ACCUMULATE: {', '.join(factors[:2])}. Good addition to portfolio."
+        else:
+            recommendation = "HOLD"
+            confidence = max(55, 65 + score)
+            thesis = f"MAINTAIN: {', '.join(factors[:2]) if factors else 'Neutral position'}. No changes needed."
+        
+        return recommendation, int(confidence), thesis
+    
+    def _optimal_position_sizing(self, recommendation: str, confidence: int, 
+                               unrealized_pl: float, current_allocation: float) -> tuple:
+        """Calculate optimal position sizing for portfolio optimization"""
+        
+        if recommendation == "SELL":
+            if confidence > 85:
+                return "SELL ALL", 0.0
+            else:
+                return "REDUCE 50%", max(2.0, current_allocation * 0.5)
+        
+        elif recommendation == "BUY":
+            if confidence > 85:
+                return "INCREASE 50%", min(15.0, current_allocation * 1.5)
+            else:
+                return "ADD 25%", min(12.0, current_allocation * 1.25)
+        
+        else:  # HOLD
+            return "MAINTAIN", current_allocation
     
     async def create_position_analysis(self, ticker: str, shares: float, 
                                      market_value: float, cost_basis: float,
@@ -200,67 +449,215 @@ class LivePortfolioEngine:
     
     async def generate_ai_recommendation(self, ticker: str, price: float, 
                                        day_change: float, unrealized_pl: float) -> Dict[str, Any]:
-        """Generate AI-powered recommendation for position"""
+        """Generate hedge fund-level AI recommendation using comprehensive intelligence"""
         
-        # Sophisticated analysis based on multiple factors
-        recommendation = "HOLD"
-        confidence = 50
-        position_sizing = "MAINTAIN"
-        target_allocation = 10.0
+        try:
+            # Import comprehensive intelligence engine
+            from core.comprehensive_intelligence_engine import ComprehensiveIntelligenceEngine
+            
+            # Gather comprehensive market intelligence
+            intel_engine = ComprehensiveIntelligenceEngine()
+            intelligence = await intel_engine.gather_comprehensive_intelligence(ticker)
+            
+            # Analyze using comprehensive data
+            recommendation, confidence = await self._analyze_with_intelligence(
+                ticker, price, day_change, unrealized_pl, intelligence
+            )
+            
+            # Determine position sizing based on analysis
+            position_sizing, target_allocation = self._calculate_position_sizing(
+                recommendation, confidence, unrealized_pl, intelligence
+            )
+            
+            return {
+                'action': recommendation,
+                'confidence': confidence,
+                'position_sizing': position_sizing,
+                'target_allocation': target_allocation,
+                'intelligence_used': True,
+                'data_sources': self._count_active_sources(intelligence)
+            }
+            
+        except Exception as e:
+            print(f"⚠️ Intelligence engine error for {ticker}: {e}")
+            # Fallback to basic analysis
+            return await self._generate_basic_recommendation(ticker, price, day_change, unrealized_pl)
+    
+    async def _analyze_with_intelligence(self, ticker: str, price: float, day_change: float, 
+                                       unrealized_pl: float, intelligence) -> tuple:
+        """Analyze stock using comprehensive intelligence"""
         
-        # Performance-based logic
-        if unrealized_pl > 20:  # Strong performer
-            if day_change > 5:  # Still moving up
-                recommendation = "HOLD"  # Take profits gradually
-                confidence = 80
-                position_sizing = "DECREASE"  # Trim position
-                target_allocation = 8.0
-            else:
-                recommendation = "HOLD"
-                confidence = 75
-                position_sizing = "MAINTAIN"
+        # Initialize scoring system
+        score = 0
+        confidence_factors = []
         
-        elif unrealized_pl < -15:  # Underperformer
-            if day_change < -5:  # Getting worse
-                recommendation = "SELL"
-                confidence = 85
-                position_sizing = "DECREASE"
-                target_allocation = 3.0
-            else:
-                recommendation = "HOLD"  # Wait for bounce
-                confidence = 60
-                position_sizing = "MAINTAIN"
+        # 1. SOCIAL SENTIMENT ANALYSIS (30% weight)
+        reddit_sentiment = intelligence.reddit_sentiment.get('sentiment', 'neutral')
+        twitter_sentiment = intelligence.twitter_sentiment.get('sentiment', 'neutral')
         
-        else:  # Neutral performance
-            if day_change > 3:  # Good momentum
-                recommendation = "BUY"
-                confidence = 70
-                position_sizing = "INCREASE"
-                target_allocation = 12.0
-            else:
-                recommendation = "HOLD"
-                confidence = 65
-                position_sizing = "MAINTAIN"
+        social_score = 0
+        if reddit_sentiment in ['bullish', 'very_bullish']:
+            social_score += 15
+            confidence_factors.append(f"Reddit bullish ({intelligence.reddit_sentiment.get('mentions', 0)} mentions)")
+        elif reddit_sentiment in ['bearish', 'very_bearish']:
+            social_score -= 15
+            confidence_factors.append(f"Reddit bearish ({intelligence.reddit_sentiment.get('mentions', 0)} mentions)")
         
-        # Special cases for known patterns
-        if ticker == 'VIGL' and unrealized_pl > 100:  # VIGL winner
+        if twitter_sentiment in ['bullish', 'very_bullish']:
+            social_score += 15
+            confidence_factors.append(f"Twitter bullish ({intelligence.twitter_sentiment.get('mentions', 0)} mentions)")
+        elif twitter_sentiment in ['bearish', 'very_bearish']:
+            social_score -= 15
+            confidence_factors.append(f"Twitter bearish ({intelligence.twitter_sentiment.get('mentions', 0)} mentions)")
+        
+        score += social_score
+        
+        # 2. NEWS AND ANALYST SENTIMENT (25% weight)
+        news_count = len(intelligence.breaking_news)
+        analyst_count = len(intelligence.analyst_updates.get('recent_reports', []))
+        
+        if news_count > 3:
+            score += 10
+            confidence_factors.append(f"{news_count} recent news articles")
+        
+        if analyst_count > 0:
+            score += 15
+            confidence_factors.append(f"{analyst_count} analyst updates")
+        
+        # 3. OPTIONS FLOW ANALYSIS (20% weight)
+        options_sentiment = intelligence.options_flow.get('sentiment', 'neutral')
+        put_call_ratio = intelligence.options_flow.get('put_call_ratio', 1.0)
+        
+        if options_sentiment == 'bullish' or put_call_ratio < 0.7:
+            score += 20
+            confidence_factors.append(f"Bullish options flow (P/C: {put_call_ratio:.2f})")
+        elif options_sentiment == 'bearish' or put_call_ratio > 1.3:
+            score -= 20
+            confidence_factors.append(f"Bearish options flow (P/C: {put_call_ratio:.2f})")
+        
+        # 4. TECHNICAL PERFORMANCE (15% weight)
+        if unrealized_pl > 15:
+            score += 10
+            confidence_factors.append(f"Strong performer (+{unrealized_pl:.1f}%)")
+        elif unrealized_pl < -15:
+            score -= 15
+            confidence_factors.append(f"Underperformer ({unrealized_pl:.1f}%)")
+        
+        if day_change > 3:
+            score += 5
+            confidence_factors.append(f"Strong daily momentum (+{day_change:.1f}%)")
+        elif day_change < -3:
+            score -= 5
+            confidence_factors.append(f"Weak daily momentum ({day_change:.1f}%)")
+        
+        # 5. REGULATORY/POLITICAL FACTORS (10% weight)
+        congressional_trades = len(intelligence.congressional_trades)
+        fda_events = len(intelligence.fda_events)
+        
+        if congressional_trades > 0:
+            score += 5
+            confidence_factors.append(f"{congressional_trades} recent congressional trades")
+        
+        if fda_events > 0:
+            score += 5
+            confidence_factors.append(f"{fda_events} FDA events scheduled")
+        
+        # Convert score to recommendation
+        if score >= 40:
+            recommendation = "BUY"
+            confidence = min(95, 70 + (score - 40))
+        elif score >= 15:
+            recommendation = "HOLD"  
+            confidence = min(85, 60 + (score - 15))
+        elif score >= -15:
             recommendation = "HOLD"
-            confidence = 90
-            position_sizing = "DECREASE"  # Take profits on big winner
-            target_allocation = 5.0
-        
-        if ticker == 'WOLF' and unrealized_pl < -20:  # WOLF loser
+            confidence = max(55, 65 + score)
+        elif score >= -40:
             recommendation = "SELL"
-            confidence = 80
+            confidence = min(85, 60 + abs(score + 15))
+        else:
+            recommendation = "SELL"
+            confidence = min(95, 70 + abs(score + 40))
+        
+        return recommendation, int(confidence)
+    
+    def _calculate_position_sizing(self, recommendation: str, confidence: int, 
+                                 unrealized_pl: float, intelligence) -> tuple:
+        """Calculate position sizing based on analysis"""
+        
+        if recommendation == "BUY" and confidence > 80:
+            position_sizing = "INCREASE"
+            target_allocation = 15.0
+        elif recommendation == "BUY":
+            position_sizing = "INCREASE"
+            target_allocation = 12.0
+        elif recommendation == "SELL" and confidence > 80:
             position_sizing = "DECREASE"
             target_allocation = 2.0
+        elif recommendation == "SELL":
+            position_sizing = "DECREASE"
+            target_allocation = 5.0
+        else:
+            position_sizing = "MAINTAIN"
+            target_allocation = 8.0
         
-        return {
-            'action': recommendation,
-            'confidence': confidence,
-            'position_sizing': position_sizing,
-            'target_allocation': target_allocation
-        }
+        # Risk management adjustments
+        if unrealized_pl > 50:  # Take profits on big winners
+            if target_allocation > 8:
+                target_allocation = 8.0
+                position_sizing = "DECREASE"
+        
+        if unrealized_pl < -30:  # Cut losses on big losers
+            target_allocation = min(target_allocation, 3.0)
+            position_sizing = "DECREASE"
+        
+        return position_sizing, target_allocation
+    
+    def _count_active_sources(self, intelligence) -> int:
+        """Count active intelligence sources"""
+        active_count = 0
+        
+        # Check dictionary sources (have .get() method)
+        dict_sources = [
+            intelligence.reddit_sentiment,
+            intelligence.twitter_sentiment,
+            intelligence.options_flow,
+            intelligence.dark_pool_activity,
+            intelligence.institutional_flows
+        ]
+        
+        for source in dict_sources:
+            if source and not source.get('error'):
+                active_count += 1
+        
+        # Check list sources (don't have .get() method)
+        list_sources = [
+            intelligence.breaking_news,
+            intelligence.earnings_events,
+            intelligence.congressional_trades,
+            intelligence.fda_events,
+            intelligence.insider_trades
+        ]
+        
+        for source in list_sources:
+            if source and len(source) > 0 and not (len(source) == 1 and source[0].get('error')):
+                active_count += 1
+        
+        return active_count
+    
+    async def _generate_basic_recommendation(self, ticker: str, price: float, 
+                                           day_change: float, unrealized_pl: float) -> Dict[str, Any]:
+        """Fallback basic recommendation if intelligence engine fails"""
+        
+        # Basic performance-based logic
+        if unrealized_pl > 20 and day_change > 3:
+            return {'action': 'HOLD', 'confidence': 75, 'position_sizing': 'DECREASE', 'target_allocation': 8.0}
+        elif unrealized_pl < -20 and day_change < -3:
+            return {'action': 'SELL', 'confidence': 80, 'position_sizing': 'DECREASE', 'target_allocation': 3.0}
+        elif day_change > 5:
+            return {'action': 'BUY', 'confidence': 70, 'position_sizing': 'INCREASE', 'target_allocation': 12.0}
+        else:
+            return {'action': 'HOLD', 'confidence': 65, 'position_sizing': 'MAINTAIN', 'target_allocation': 8.0}
     
     async def generate_stock_thesis(self, ticker: str, info: Dict, price: float, day_change: float) -> str:
         """Generate detailed thesis for the stock"""
