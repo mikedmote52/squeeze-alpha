@@ -1,0 +1,132 @@
+# Squeeze Alpha - AI Trading System
+# .gitignore file
+
+# Environment and secrets
+.env
+.env.local
+.env.production
+secrets.json
+config/secrets.py
+
+# API Keys and credentials
+**/api_keys.json
+**/credentials.json
+**/*_key.txt
+**/*_secret.txt
+
+# Trading data and logs
+trading_logs/
+portfolio_data/
+performance_reports/
+*.log
+*.sqlite
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*.ipynb
+
+# Testing
+.coverage
+.pytest_cache/
+.tox/
+.nox/
+htmlcov/
+.cache
+
+# Documentation
+docs/_build/
+.readthedocs.yml
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Redis dumps
+dump.rdb
+
+# Portfolio screenshots and reports
+screenshots/
+reports/*.pdf
+reports/*.xlsx
+
+# Market data cache
+market_data_cache/
+*.pickle
+*.pkl
+
+# AI model outputs
+ai_outputs/
+debate_logs/
+
+# System monitoring
+monitoring_data/
+performance_metrics/
+
+# Replit specific
+.replit
+replit.nix
+.config/
+
+# Mac specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows specific
+desktop.ini
+ehthumbs.db
+
+# Linux specific
+*~
+
+# Deployment
+deployment/
+docker-compose.override.yml
+
+# Local configuration
+local_config.py
+user_settings.json
