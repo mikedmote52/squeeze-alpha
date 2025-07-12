@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squeeze Alpha - Live Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .position-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .position-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .ticker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .ticker {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        
+        .recommendation-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .recommendation-badge.buy { background-color: #4CAF50; }
+        .recommendation-badge.sell { background-color: #f44336; }
+        .recommendation-badge.hold { background-color: #ff9800; }
+        
+        .position-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .detail-item {
+            font-size: 0.9em;
+        }
+        
+        .detail-label {
+            opacity: 0.8;
+        }
+        
+        .detail-value {
+            font-weight: bold;
+        }
+        
+        .positive { color: #4CAF50; }
+        .negative { color: #f44336; }
+        
+        .thesis {
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 8px;
+            font-style: italic;
+            margin-top: 10px;
+        }
+        
+        .confidence-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.3s;
+        }
+        
+        .refresh-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .stats-bar {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-around;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .stat-label {
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+        }
+        
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Squeeze Alpha Live Dashboard</h1>
+            <p>Real-time portfolio analysis with AI recommendations</p>
+        </div>
+        
+        <div class="stats-bar" id="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value" id="portfolio-value">Loading...</div>
+                <div class="stat-label">Portfolio Value</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="total-positions">-</div>
+                <div class="stat-label">Positions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="day-change">-</div>
+                <div class="stat-label">Day Change</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="buy-signals">-</div>
+                <div class="stat-label">Buy Signals</div>
+            </div>
+        </div>
+        
+        <div class="portfolio-grid" id="portfolio-grid">
+            <div class="loading">
+                <p>🔄 Loading live portfolio data...</p>
+            </div>
+        </div>
+        
+        <button class="refresh-button" onclick="refreshPortfolio()">
+            🔄 Refresh Portfolio
+        </button>
+    </div>
+
+    <script>
+        async function loadPortfolio() {
+            try {
+                const response = await fetch('/api/portfolio');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateStats(data);
+                    displayPositions(data.recommendations);
+                } else {
+                    showError(data.message || 'Failed to load portfolio');
+                }
+            } catch (error) {
+                showError('Connection error: ' + error.message);
+            }
+        }
+        
+        function updateStats(data) {
+            document.getElementById('portfolio-value').textContent = 
+                '$' + (data.portfolio_value || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('total-positions').textContent = data.positions || 0;
+            
+            // Calculate day change from positions
+            let dayChange = 0;
+            if (data.recommendations) {
+                data.recommendations.forEach(rec => {
+                    dayChange += rec.day_change || 0;
+                });
+            }
+            
+            const dayChangeEl = document.getElementById('day-change');
+            dayChangeEl.textContent = '$' + Math.abs(dayChange).toLocaleString('en-US', {minimumFractionDigits: 2});
+            dayChangeEl.className = dayChange >= 0 ? 'stat-value positive' : 'stat-value negative';
+            
+            // Count buy signals
+            const buySignals = data.recommendations ? 
+                data.recommendations.filter(r => r.action === 'BUY').length : 0;
+            document.getElementById('buy-signals').textContent = buySignals;
+        }
+        
+        function displayPositions(recommendations) {
+            const grid = document.getElementById('portfolio-grid');
+            
+            if (!recommendations || recommendations.length === 0) {
+                grid.innerHTML = '<div class="error">No positions found</div>';
+                return;
+            }
+            
+            grid.innerHTML = recommendations.map(rec => `
+                <div class="position-card" onclick="viewPosition('${rec.ticker}')">
+                    <div class="ticker-header">
+                        <span class="ticker">${rec.ticker}</span>
+                        <span class="recommendation-badge ${rec.action.toLowerCase()}">${rec.action}</span>
+                    </div>
+                    
+                    <div class="position-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Shares</div>
+                            <div class="detail-value">${rec.current_shares}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Value</div>
+                            <div class="detail-value">$${rec.current_value.toLocaleString()}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Confidence</div>
+                            <div class="detail-value">${rec.confidence}%</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Risk</div>
+                            <div class="detail-value">${rec.risk_level}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="thesis">
+                        <strong>Thesis:</strong> ${rec.thesis}
+                    </div>
+                    
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${rec.confidence}%"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function showError(message) {
+            const grid = document.getElementById('portfolio-grid');
+            grid.innerHTML = `<div class="error">⚠️ ${message}</div>`;
+        }
+        
+        function viewPosition(ticker) {
+            window.location.href = `/position/${ticker}`;
+        }
+        
+        function refreshPortfolio() {
+            document.getElementById('portfolio-grid').innerHTML = 
+                '<div class="loading"><p>🔄 Refreshing portfolio...</p></div>';
+            loadPortfolio();
+        }
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadPortfolio, 30000);
+        
+        // Load on page load
+        loadPortfolio();
+    </script>
+</body>
+</html>

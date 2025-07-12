@@ -1,0 +1,148 @@
+{
+  "updated_at": "2025-07-10T10:10:59.390184",
+  "total_positions": 14,
+  "tickers": [
+    "AMD",
+    "BLNK",
+    "BTBT",
+    "BYND",
+    "CHPT",
+    "CRWV",
+    "EAT",
+    "ETSY",
+    "LIXT",
+    "NVAX",
+    "SMCI",
+    "SOUN",
+    "VIGL",
+    "WOLF"
+  ],
+  "positions": [
+    {
+      "ticker": "AMD",
+      "shares": 8.0,
+      "market_value": 1154.2296,
+      "cost_basis": 1079.28,
+      "unrealized_pl": 74.9496,
+      "unrealized_plpc": 6.9444073826995805,
+      "side": "long"
+    },
+    {
+      "ticker": "BLNK",
+      "shares": 153.0,
+      "market_value": 157.4523,
+      "cost_basis": 157.59,
+      "unrealized_pl": -0.1377,
+      "unrealized_plpc": -0.08737864077669999,
+      "side": "long"
+    },
+    {
+      "ticker": "BTBT",
+      "shares": 328.0,
+      "market_value": 1151.0832,
+      "cost_basis": 1109.98,
+      "unrealized_pl": 41.1032,
+      "unrealized_plpc": 3.70305771275158,
+      "side": "long"
+    },
+    {
+      "ticker": "BYND",
+      "shares": 52.0,
+      "market_value": 186.42,
+      "cost_basis": 183.56,
+      "unrealized_pl": 2.86,
+      "unrealized_plpc": 1.5580736543909302,
+      "side": "long"
+    },
+    {
+      "ticker": "CHPT",
+      "shares": 206.0,
+      "market_value": 142.449,
+      "cost_basis": 137.2578,
+      "unrealized_pl": 5.1912,
+      "unrealized_plpc": 3.7820801440792398,
+      "side": "long"
+    },
+    {
+      "ticker": "CRWV",
+      "shares": 14.0,
+      "market_value": 2036.3,
+      "cost_basis": 2248.12,
+      "unrealized_pl": -211.82,
+      "unrealized_plpc": -9.42209490596587,
+      "side": "long"
+    },
+    {
+      "ticker": "EAT",
+      "shares": 1.0,
+      "market_value": 167.39,
+      "cost_basis": 174.85,
+      "unrealized_pl": -7.46,
+      "unrealized_plpc": -4.26651415498999,
+      "side": "long"
+    },
+    {
+      "ticker": "ETSY",
+      "shares": 2.0,
+      "market_value": 114.04,
+      "cost_basis": 108.58,
+      "unrealized_pl": 5.46,
+      "unrealized_plpc": 5.0285503776017695,
+      "side": "long"
+    },
+    {
+      "ticker": "LIXT",
+      "shares": 167.0,
+      "market_value": 589.5434,
+      "cost_basis": 389.942998,
+      "unrealized_pl": 199.600402,
+      "unrealized_plpc": 51.18707170631129,
+      "side": "long"
+    },
+    {
+      "ticker": "NVAX",
+      "shares": 27.0,
+      "market_value": 191.16,
+      "cost_basis": 190.89,
+      "unrealized_pl": 0.27,
+      "unrealized_plpc": 0.14144271570014,
+      "side": "long"
+    },
+    {
+      "ticker": "SMCI",
+      "shares": 22.0,
+      "market_value": 1108.36,
+      "cost_basis": 1038.18,
+      "unrealized_pl": 70.18,
+      "unrealized_plpc": 6.75990675990676,
+      "side": "long"
+    },
+    {
+      "ticker": "SOUN",
+      "shares": 9.0,
+      "market_value": 110.0538,
+      "cost_basis": 110.92,
+      "unrealized_pl": -0.8662,
+      "unrealized_plpc": -0.7809231878831601,
+      "side": "long"
+    },
+    {
+      "ticker": "VIGL",
+      "shares": 133.0,
+      "market_value": 1069.32,
+      "cost_basis": 1062.67,
+      "unrealized_pl": 6.65,
+      "unrealized_plpc": 0.62578222778473,
+      "side": "long"
+    },
+    {
+      "ticker": "WOLF",
+      "shares": 428.0,
+      "market_value": 702.99,
+      "cost_basis": 657.297871,
+      "unrealized_pl": 45.692129,
+      "unrealized_plpc": 6.95151026892646,
+      "side": "long"
+    }
+  ]
+}

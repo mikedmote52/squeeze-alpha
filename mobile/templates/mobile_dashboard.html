@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>📱 Squeeze Alpha</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .app-container { 
+            max-width: 100vw; 
+            background: white; 
+            min-height: 100vh;
+        }
+        .header { 
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white; 
+            padding: 20px; 
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header h1 { font-size: 1.5rem; margin-bottom: 5px; }
+        .status-indicator { 
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-running { background: #28a745; }
+        .status-stopped { background: #dc3545; }
+        .portfolio-summary { 
+            background: #f8f9fa;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .summary-card { 
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .summary-label { font-size: 0.85rem; color: #666; margin-bottom: 5px; }
+        .summary-value { font-size: 1.3rem; font-weight: bold; }
+        .positive { color: #28a745; }
+        .negative { color: #dc3545; }
+        
+        .sort-controls {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .sort-label {
+            font-weight: bold;
+            color: #2a5298;
+            font-size: 0.9rem;
+        }
+        .sort-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .sort-btn {
+            padding: 6px 12px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sort-btn:hover {
+            background: #f8f9fa;
+        }
+        .sort-btn.active {
+            background: #2a5298;
+            color: white;
+            border-color: #2a5298;
+        }
+        
+        .holdings { padding: 20px; }
+        .holding-card { 
+            background: white;
+            margin-bottom: 12px;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .holding-card:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        .stock-ticker { font-weight: bold; font-size: 1.1rem; color: #2a5298; }
+        .stock-name { font-size: 0.9rem; color: #666; margin-top: 2px; }
+        .stock-shares { font-size: 0.8rem; color: #999; margin-top: 2px; }
+        .price-info { text-align: right; }
+        .stock-price { font-weight: bold; font-size: 1.1rem; }
+        .stock-value { font-size: 0.9rem; color: #666; margin-top: 2px; }
+        .stock-change { font-size: 0.9rem; margin-top: 2px; }
+        
+        .controls { 
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .btn { 
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn:active { transform: scale(0.95); }
+        .mb-80 { margin-bottom: 80px; }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .close {
+            font-size: 2rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .thesis-section {
+            margin-bottom: 20px;
+        }
+        .thesis-section h3 {
+            color: #2a5298;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .thesis-text {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .metric-value {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #2a5298;
+        }
+        .moves-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .moves-list li {
+            margin-bottom: 8px;
+            padding-left: 10px;
+        }
+        .risk-section {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .btn-description {
+            font-size: 0.75rem;
+            font-weight: normal;
+            margin-top: 4px;
+            opacity: 0.8;
+            line-height: 1.2;
+        }
+        
+        .status-display {
+            background: #e8f4f8;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #2a5298;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+        
+        .status-label {
+            font-weight: bold;
+            color: #2a5298;
+        }
+        
+        .status-value {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .help-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #2a5298;
+        }
+        
+        .help-section h3 {
+            margin: 0 0 15px 0;
+            color: #2a5298;
+            font-size: 1.1rem;
+        }
+        
+        .help-item {
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .help-item:last-child {
+            border-bottom: none;
+        }
+        
+        .help-item strong {
+            color: #2a5298;
+        }
+        
+        .btn {
+            position: relative;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .discovery-section {
+            background: #f0f8ff;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #4a90e2;
+        }
+        
+        .discovery-section h3 {
+            margin: 0 0 15px 0;
+            color: #2a5298;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        
+        .discovery-controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            border: none;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #357abd, #2a5298);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        @media (max-width: 480px) {
+            .portfolio-summary { grid-template-columns: 1fr; }
+            .controls { grid-template-columns: 1fr; }
+            .modal-content { width: 95%; margin: 5% auto; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            .help-section { margin: 15px 0; padding: 15px; }
+            .btn { min-height: 70px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>📱 Squeeze Alpha</h1>
+            <div>
+                <span class="status-indicator {{ 'status-running' if status.running else 'status-stopped' }}"></span>
+                {{ 'System Running' if status.running else 'System Stopped' }}
+            </div>
+        </div>
+        
+        <div class="portfolio-summary">
+            <div class="summary-card">
+                <div class="summary-label">Portfolio Value</div>
+                <div class="summary-value">${{ "{:,.0f}".format(status.portfolio.total_value) }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Today's P&L</div>
+                <div class="summary-value {{ 'positive' if status.portfolio.total_change >= 0 else 'negative' }}">
+                    ${{ "{:+,.0f}".format(status.portfolio.total_change) }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="sort-controls">
+            <div class="sort-label">Sort by:</div>
+            <div class="sort-buttons">
+                <button class="sort-btn active" onclick="sortHoldings('ticker')">A-Z</button>
+                <button class="sort-btn" onclick="sortHoldings('value')">Value</button>
+                <button class="sort-btn" onclick="sortHoldings('change_percent')">% Change</button>
+                <button class="sort-btn" onclick="sortHoldings('position_change')">$ Change</button>
+            </div>
+        </div>
+        
+        <div class="holdings mb-80" id="holdingsContainer">
+            {% for holding in status.portfolio.holdings %}
+            <div class="holding-card" 
+                 data-ticker="{{ holding.ticker }}"
+                 data-value="{{ holding.value }}"
+                 data-change-percent="{{ holding.change_percent }}"
+                 data-position-change="{{ holding.position_change }}"
+                 onclick="showStockAnalysis('{{ holding.ticker }}')">
+                <div class="stock-info">
+                    <div class="stock-ticker">{{ holding.ticker }}</div>
+                    <div class="stock-name">{{ holding.name }}</div>
+                    <div class="stock-shares">{{ holding.shares }} shares</div>
+                </div>
+                <div class="price-info">
+                    <div class="stock-price">${{ "{:.2f}".format(holding.price) }}</div>
+                    <div class="stock-value">${{ "{:,.0f}".format(holding.value) }}</div>
+                    <div class="stock-change {{ 'positive' if holding.change >= 0 else 'negative' }}">
+                        ${{ "{:+.2f}".format(holding.change) }} ({{ "{:+.1f}".format(holding.change_percent) }}%)
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="controls">
+            {% if status.running %}
+                <button class="btn btn-danger" onclick="stopSystem()" title="Stop the autonomous trading system from scanning for new opportunities">
+                    🛑 Stop Auto-Trading
+                    <div class="btn-description">Stops: Market scanning, new stock discovery, trade recommendations</div>
+                </button>
+            {% else %}
+                <button class="btn btn-success" onclick="startSystem()" title="Start the autonomous trading system to scan for explosive opportunities">
+                    🚀 Start Auto-Trading
+                    <div class="btn-description">Starts: 4x daily market scans, AI stock discovery, Slack alerts</div>
+                </button>
+            {% endif %}
+            <button class="btn btn-info" onclick="runAnalysis()" title="Run immediate AI analysis on current portfolio and market for new opportunities">
+                🧠 Find New Opportunities
+                <div class="btn-description">Scans market NOW for explosive stocks, sends results to Slack</div>
+            </button>
+            <div class="discovery-section">
+                <h3>🔍 AI Stock Discovery Pipeline</h3>
+                <div class="discovery-controls">
+                    <button class="btn btn-primary" onclick="runStockDiscovery('today')" title="Find explosive opportunities for TODAY using Perplexity → Claude vs ChatGPT debate">
+                        ⚡ Today's Explosives
+                        <div class="btn-description">Perplexity finds TODAY's catalysts → AI debate → Immediate opportunities</div>
+                    </button>
+                    <button class="btn btn-primary" onclick="runStockDiscovery('week')" title="Find explosive opportunities for THIS WEEK using Perplexity → Claude vs ChatGPT debate">
+                        🚀 This Week's Moonshots
+                        <div class="btn-description">Perplexity finds week's catalysts → AI debate → Best 7-day plays</div>
+                    </button>
+                    <button class="btn btn-primary" onclick="runStockDiscovery('month')" title="Find explosive opportunities for THIS MONTH using Perplexity → Claude vs ChatGPT debate">
+                        🌙 Monthly Explosives
+                        <div class="btn-description">Perplexity finds month's catalysts → AI debate → 30-day moonshots</div>
+                    </button>
+                    <button class="btn btn-primary" onclick="runDailyLearning()" title="Manually trigger daily learning cycle to study market winners and improve discovery">
+                        🎓 Daily Learning Cycle
+                        <div class="btn-description">Study today's market winners → Identify gaps → Enhance discovery algorithms</div>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="discovery-section">
+                <h3>📊 Performance Reports</h3>
+                <div class="discovery-controls">
+                    <button class="btn btn-primary" onclick="runPerformanceReport('daily')" title="Generate comprehensive daily performance report with recommendations">
+                        📈 Daily Performance Report
+                        <div class="btn-description">Analyze today's performance → Identify successes/failures → Generate recommendations</div>
+                    </button>
+                    <button class="btn btn-primary" onclick="runPerformanceReport('weekly')" title="Generate comprehensive weekly performance report">
+                        📊 Weekly Report
+                        <div class="btn-description">Weekly performance analysis → Pattern identification → Strategic recommendations</div>
+                    </button>
+                    <button class="btn btn-primary" onclick="runPerformanceReport('monthly')" title="Generate comprehensive monthly performance report">
+                        📋 Monthly Report
+                        <div class="btn-description">Monthly achievement analysis → Strategy effectiveness → Major recommendations</div>
+                    </button>
+                    <button class="btn btn-primary" onclick="runPerformanceReport('annual')" title="Generate comprehensive annual performance report">
+                        🎯 Annual Report
+                        <div class="btn-description">Annual performance review → System evolution → Strategic overhaul recommendations</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-display">
+            <div class="status-item">
+                <div class="status-label">📅 Next Scan:</div>
+                <div class="status-value">{{ status.next_scheduled if status.running else 'Auto-trading stopped' }}</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">📱 Results Go To:</div>
+                <div class="status-value">Slack Notifications</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">🎯 Target Returns:</div>
+                <div class="status-value">60%+ Monthly (Like VIGL +324%)</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">🎓 Daily Learning:</div>
+                <div class="status-value">Auto-runs at 4:30 PM PT to study market winners</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">📊 Daily Reports:</div>
+                <div class="status-value">Auto-runs at 5:00 PM PT with recommendations</div>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <h3>📋 What Each Button Does:</h3>
+            <div class="help-item">
+                <strong>🚀 Start Auto-Trading:</strong> Activates the autonomous system to scan markets 4x daily (8am, 12pm, 4pm, 6pm) for explosive opportunities like VIGL (+324%). Results sent to Slack.
+            </div>
+            <div class="help-item">
+                <strong>🛑 Stop Auto-Trading:</strong> Pauses the autonomous scanning system. Your portfolio tracking continues but no new opportunities will be discovered.
+            </div>
+            <div class="help-item">
+                <strong>🧠 Find New Opportunities:</strong> Runs immediate AI analysis on 100+ stocks to find pre-breakout signals. Results appear in Slack within 30 seconds.
+            </div>
+            <div class="help-item">
+                <strong>⚡ Today's Explosives:</strong> Perplexity AI finds stocks with catalysts happening TODAY, then Claude vs ChatGPT debate which ones could deliver explosive returns immediately.
+            </div>
+            <div class="help-item">
+                <strong>🚀 This Week's Moonshots:</strong> Perplexity AI discovers stocks with major catalysts in the next 7 days, then AI hedge fund managers debate the best opportunities for 100%+ gains.
+            </div>
+            <div class="help-item">
+                <strong>🌙 Monthly Explosives:</strong> Perplexity AI finds paradigm-shifting opportunities for the next 30 days, then Claude vs ChatGPT compete to design the best return strategies.
+            </div>
+            <div class="help-item">
+                <strong>🎓 Daily Learning Cycle:</strong> Manually trigger the system to study today's biggest market winners, identify why they were missed, and update discovery algorithms for better future performance.
+            </div>
+            <div class="help-item">
+                <strong>📈 Daily Performance Report:</strong> Generate comprehensive daily performance analysis with successes, failures, and actionable recommendations that require your approval.
+            </div>
+            <div class="help-item">
+                <strong>📊 Weekly/Monthly/Annual Reports:</strong> Generate comprehensive performance reports analyzing patterns, achievements, and strategic recommendations for system improvements.
+            </div>
+            <div class="help-item">
+                <strong>📱 Click Any Stock:</strong> Tap any stock tile to see detailed thesis, success probability, anticipated moves, and risk management.
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Analysis Modal -->
+    <div id="stockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Stock Analysis</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="loading">Loading analysis...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function sortHoldings(sortBy) {
+            const container = document.getElementById('holdingsContainer');
+            const cards = Array.from(container.getElementsByClassName('holding-card'));
+            
+            // Update active button
+            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            cards.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch(sortBy) {
+                    case 'ticker':
+                        aValue = a.getAttribute('data-ticker');
+                        bValue = b.getAttribute('data-ticker');
+                        return aValue.localeCompare(bValue);
+                    
+                    case 'value':
+                        aValue = parseFloat(a.getAttribute('data-value'));
+                        bValue = parseFloat(b.getAttribute('data-value'));
+                        return bValue - aValue;
+                    
+                    case 'change_percent':
+                        aValue = parseFloat(a.getAttribute('data-change-percent'));
+                        bValue = parseFloat(b.getAttribute('data-change-percent'));
+                        return bValue - aValue;
+                    
+                    case 'position_change':
+                        aValue = parseFloat(a.getAttribute('data-position-change'));
+                        bValue = parseFloat(b.getAttribute('data-position-change'));
+                        return bValue - aValue;
+                    
+                    default:
+                        return 0;
+                }
+            });
+            
+            cards.forEach(card => container.appendChild(card));
+        }
+
+        function showStockAnalysis(ticker) {
+            console.log('Showing analysis for:', ticker);
+            
+            const modal = document.getElementById('stockModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.textContent = ticker + ' Analysis';
+            modalBody.innerHTML = '<div class="loading">Loading analysis...</div>';
+            modal.style.display = 'block';
+            
+            fetch('/api/stock/' + ticker)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        modalBody.innerHTML = '<div class="error">Error: ' + data.error + '</div>';
+                        return;
+                    }
+                    
+                    modalBody.innerHTML = `
+                        <div class="thesis-section">
+                            <h3>🎯 Investment Thesis</h3>
+                            <div class="thesis-text">${data.thesis || 'Analysis not available'}</div>
+                            <div class="metric-card">
+                                <div class="metric-label">Current Plan</div>
+                                <div class="metric-value">${data.current_plan || 'N/A'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="thesis-section">
+                            <h3>📊 Key Metrics</h3>
+                            <div class="metrics-grid">
+                                <div class="metric-card">
+                                    <div class="metric-label">Float Shares</div>
+                                    <div class="metric-value">${data.key_metrics?.float_shares || 'N/A'}</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Short Ratio</div>
+                                    <div class="metric-value">${data.key_metrics?.short_ratio || 'N/A'}</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Success Probability</div>
+                                    <div class="metric-value">${data.success_probability ? Math.round(data.success_probability * 100) : 'N/A'}%</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Squeeze Potential</div>
+                                    <div class="metric-value">${data.squeeze_potential || 'N/A'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="thesis-section">
+                            <h3>🔮 Anticipated Moves</h3>
+                            <div class="moves-list">
+                                <ul>
+                                    ${data.anticipated_moves ? data.anticipated_moves.map(move => '<li>' + move + '</li>').join('') : '<li>No moves data available</li>'}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="thesis-section">
+                            <h3>⚠️ Risk Management</h3>
+                            <div class="risk-section">
+                                <div><strong>Stop Loss:</strong> ${data.risk_management?.stop_loss || 'N/A'}</div>
+                                <div><strong>Position Size:</strong> ${data.risk_management?.position_sizing || 'N/A'}</div>
+                                <div><strong>Profit Targets:</strong> ${data.risk_management?.profit_targets || 'N/A'}</div>
+                            </div>
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    modalBody.innerHTML = '<div class="error">Error loading analysis: ' + error.message + '</div>';
+                });
+        }
+
+        function closeModal() {
+            document.getElementById('stockModal').style.display = 'none';
+        }
+
+        function startSystem() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '🔄 Starting Auto-Trading...<div class="btn-description">Activating market scans & AI discovery</div>';
+            btn.disabled = true;
+            
+            fetch('/api/start', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        btn.innerHTML = '✅ Auto-Trading Started!<div class="btn-description">System is now scanning for opportunities</div>';
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        alert('Failed to start system: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    alert('Error starting system: ' + error.message);
+                });
+        }
+
+        function stopSystem() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '🔄 Stopping Auto-Trading...<div class="btn-description">Pausing market scans & discoveries</div>';
+            btn.disabled = true;
+            
+            fetch('/api/stop', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        btn.innerHTML = '✅ Auto-Trading Stopped<div class="btn-description">System paused - portfolio tracking continues</div>';
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        alert('Failed to stop system: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    alert('Error stopping system: ' + error.message);
+                });
+        }
+
+        function runAnalysis() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '🔍 Scanning Market...<div class="btn-description">AI analyzing 100+ stocks for explosive opportunities</div>';
+            btn.disabled = true;
+            
+            fetch('/api/analyze', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        btn.innerHTML = '✅ Analysis Complete!<div class="btn-description">New opportunities sent to Slack - check your notifications</div>';
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }, 5000);
+                    } else {
+                        btn.innerHTML = '❌ Analysis Failed<div class="btn-description">Error: ' + data.message + '</div>';
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }, 3000);
+                    }
+                })
+                .catch(error => {
+                    btn.innerHTML = '❌ Analysis Failed<div class="btn-description">Error: ' + error.message + '</div>';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }, 3000);
+                });
+        }
+
+        function runStockDiscovery(timeframe) {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            // Different loading messages for different timeframes
+            const loadingMessages = {
+                'today': '⚡ Finding Today\'s Catalysts...<div class="btn-description">Perplexity scanning for immediate opportunities → AI debate starting</div>',
+                'week': '🚀 Discovering Week\'s Moonshots...<div class="btn-description">Perplexity finding 7-day catalysts → Claude vs ChatGPT debate</div>',
+                'month': '🌙 Hunting Monthly Explosives...<div class="btn-description">Perplexity finding paradigm shifts → AI hedge fund competition</div>'
+            };
+            
+            btn.innerHTML = loadingMessages[timeframe];
+            btn.disabled = true;
+            
+            // Disable other discovery buttons
+            document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => b.disabled = true);
+            
+            fetch('/api/discover-stocks', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ timeframe: timeframe })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const topPick = data.top_pick;
+                        const recommendations = data.final_recommendations;
+                        
+                        btn.innerHTML = `✅ Discovery Complete!<div class="btn-description">Found ${recommendations.length} picks → Top: ${topPick ? topPick.candidate_info.ticker : 'None'} → Check Slack</div>`;
+                        
+                        // Show results in a notification
+                        if (topPick) {
+                            const candidate = topPick.candidate_info;
+                            alert(`🎯 TOP PICK FOR ${timeframe.toUpperCase()}:\n\n` +
+                                  `${candidate.ticker} - ${candidate.company_name}\n` +
+                                  `Discovery: ${candidate.discovery_reason}\n` +
+                                  `AI Consensus: ${topPick.final_recommendation}\n` +
+                                  `Confidence: ${Math.round(topPick.confidence * 100)}%\n\n` +
+                                  `Full details sent to Slack!`);
+                        }
+                        
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => b.disabled = false);
+                        }, 8000);
+                    } else {
+                        btn.innerHTML = '❌ Discovery Failed<div class="btn-description">Error: ' + data.message + '</div>';
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => b.disabled = false);
+                        }, 5000);
+                    }
+                })
+                .catch(error => {
+                    btn.innerHTML = '❌ Discovery Failed<div class="btn-description">Error: ' + error.message + '</div>';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => b.disabled = false);
+                    }, 5000);
+                });
+        }
+
+        function runDailyLearning() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '🎓 Running Daily Learning...<div class="btn-description">Studying today\'s market winners → Identifying discovery gaps → Enhancing algorithms</div>';
+            btn.disabled = true;
+            
+            // Disable other buttons during learning
+            document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => b.disabled = true);
+            
+            fetch('/api/daily-learning', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const summary = data.details?.learning_summary || {};
+                        const winnersStudied = summary.total_winners_studied || 0;
+                        const improvements = summary.improvements_identified || 0;
+                        
+                        btn.innerHTML = `✅ Learning Complete!<div class="btn-description">Studied ${winnersStudied} winners, identified ${improvements} improvements → Check Slack</div>`;
+                        
+                        // Show results summary
+                        if (winnersStudied > 0) {
+                            alert(`🎓 DAILY LEARNING COMPLETE!\\n\\n` +
+                                  `Market Winners Studied: ${winnersStudied}\\n` +
+                                  `System Improvements Identified: ${improvements}\\n` +
+                                  `High Priority Improvements: ${summary.high_priority_improvements || 0}\\n\\n` +
+                                  `The system has learned from today's explosive moves and updated discovery algorithms.\\n` +
+                                  `Full learning report sent to Slack!`);
+                        }
+                        
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => b.disabled = false);
+                        }, 10000);
+                    } else {
+                        btn.innerHTML = '❌ Learning Failed<div class="btn-description">Error: ' + data.message + '</div>';
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => b.disabled = false);
+                        }, 5000);
+                    }
+                })
+                .catch(error => {
+                    btn.innerHTML = '❌ Learning Failed<div class="btn-description">Error: ' + error.message + '</div>';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => b.disabled = false);
+                    }, 5000);
+                });
+        }
+
+        function runPerformanceReport(reportType) {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            // Different loading messages for different report types
+            const loadingMessages = {
+                'daily': '📈 Generating Daily Report...<div class="btn-description">Analyzing today\'s performance → Identifying successes/failures → Generating recommendations</div>',
+                'weekly': '📊 Generating Weekly Report...<div class="btn-description">Weekly performance analysis → Pattern identification → Strategic recommendations</div>',
+                'monthly': '📋 Generating Monthly Report...<div class="btn-description">Monthly achievement analysis → Strategy effectiveness → Major recommendations</div>',
+                'annual': '🎯 Generating Annual Report...<div class="btn-description">Annual performance review → System evolution → Strategic overhaul recommendations</div>'
+            };
+            
+            btn.innerHTML = loadingMessages[reportType];
+            btn.disabled = true;
+            
+            // Disable other report buttons
+            document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => {
+                if (b.innerHTML.includes('Report')) b.disabled = true;
+            });
+            
+            const apiEndpoint = `/api/${reportType}-report`;
+            
+            fetch(apiEndpoint, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const details = data.details || {};
+                        const recommendations = details.recommendations || [];
+                        const highPriority = recommendations.filter(r => r.priority === 'high').length;
+                        const requiresApproval = recommendations.filter(r => r.requires_approval).length;
+                        
+                        btn.innerHTML = `✅ ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report Complete!<div class="btn-description">${recommendations.length} recommendations, ${highPriority} high priority, ${requiresApproval} need approval → Check Slack</div>`;
+                        
+                        // Show results summary
+                        if (recommendations.length > 0) {
+                            const reportTitle = reportType.charAt(0).toUpperCase() + reportType.slice(1);
+                            let alertMessage = `📊 ${reportTitle.toUpperCase()} PERFORMANCE REPORT COMPLETE!\\n\\n`;
+                            alertMessage += `Total Recommendations: ${recommendations.length}\\n`;
+                            alertMessage += `High Priority: ${highPriority}\\n`;
+                            alertMessage += `Requires Your Approval: ${requiresApproval}\\n\\n`;
+                            
+                            if (details.executive_summary) {
+                                alertMessage += `Executive Summary:\\n${details.executive_summary}\\n\\n`;
+                            }
+                            
+                            if (requiresApproval > 0) {
+                                alertMessage += `IMPORTANT: ${requiresApproval} recommendations require your approval before implementation.\\n\\n`;
+                            }
+                            
+                            alertMessage += `Full detailed report sent to Slack with actionable recommendations!`;
+                            
+                            alert(alertMessage);
+                        }
+                        
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => {
+                                if (b.innerHTML.includes('Report')) b.disabled = false;
+                            });
+                        }, 10000);
+                    } else {
+                        btn.innerHTML = `❌ ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report Failed<div class="btn-description">Error: ${data.message}</div>`;
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => {
+                                if (b.innerHTML.includes('Report')) b.disabled = false;
+                            });
+                        }, 5000);
+                    }
+                })
+                .catch(error => {
+                    btn.innerHTML = `❌ ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report Failed<div class="btn-description">Error: ${error.message}</div>`;
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        document.querySelectorAll('.discovery-controls .btn-primary').forEach(b => {
+                            if (b.innerHTML.includes('Report')) b.disabled = false;
+                        });
+                    }, 5000);
+                });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('stockModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            if (document.getElementById('stockModal').style.display !== 'block') {
+                location.reload();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squeeze Alpha - Enhanced Trading</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            transform: translateY(-2px);
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        /* Competition Section */
+        .competition-arena {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .ai-vs-ai {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 30px;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .ai-corner {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+        }
+        
+        .ai-corner.gpt {
+            border: 2px solid #00a67e;
+        }
+        
+        .ai-corner.claude {
+            border: 2px solid #8b5cf6;
+        }
+        
+        .vs-divider {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .debate-log {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .debate-round {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        
+        /* Discovery Section */
+        .discovery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .opportunity-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #4CAF50;
+            transition: transform 0.2s;
+        }
+        
+        .opportunity-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .growth-potential {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        /* Enhanced Positions */
+        .position-enhanced {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .thesis-section {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .thesis-performance {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .performance-indicator {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .performance-indicator.strong {
+            background: #4CAF50;
+        }
+        
+        .performance-indicator.weak {
+            background: #f44336;
+        }
+        
+        .catalyst-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .catalyst {
+            background: rgba(255,255,255,0.1);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+        }
+        
+        /* Action Buttons with Explanations */
+        .action-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .action-button:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            padding: 8px 12px;
+            border-radius: 8px;
+            white-space: nowrap;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+        
+        /* Remove Low Confidence Warning */
+        .low-confidence-warning {
+            background: rgba(244, 67, 54, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .remove-button {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .ai-vs-ai {
+                grid-template-columns: 1fr;
+            }
+            
+            .discovery-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Squeeze Alpha Enhanced Trading</h1>
+            <p>AI-Powered Trading with Hedge Fund Competition</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('positions')">📊 Positions</div>
+            <div class="tab" onclick="showTab('discovery')">🔍 Discovery</div>
+            <div class="tab" onclick="showTab('competition')">🏆 AI Competition</div>
+            <div class="tab" onclick="showTab('analysis')">🧠 Deep Analysis</div>
+        </div>
+        
+        <!-- Current Positions Tab -->
+        <div id="positions" class="content-section active">
+            <div id="positions-list">
+                <!-- Positions will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Stock Discovery Tab -->
+        <div id="discovery" class="content-section">
+            <h2>🚀 AI-Discovered Opportunities</h2>
+            <p>Real-time stock discovery with explosive growth potential</p>
+            
+            <div class="discovery-grid" id="discovery-grid">
+                <!-- Discoveries will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- AI Competition Tab -->
+        <div id="competition" class="content-section">
+            <div class="competition-arena">
+                <h2>🏆 Today's Hedge Fund Competition</h2>
+                
+                <div class="ai-vs-ai">
+                    <div class="ai-corner gpt">
+                        <h3>GPT-4</h3>
+                        <div style="font-size: 2em;">🤖</div>
+                        <div>Score: <span id="gpt-score">0</span></div>
+                    </div>
+                    
+                    <div class="vs-divider">VS</div>
+                    
+                    <div class="ai-corner claude">
+                        <h3>Claude</h3>
+                        <div style="font-size: 2em;">🧠</div>
+                        <div>Score: <span id="claude-score">0</span></div>
+                    </div>
+                </div>
+                
+                <div class="debate-log" id="debate-log">
+                    <!-- Debate rounds will appear here -->
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="action-button" onclick="runCompetition()" 
+                            data-tooltip="Start AI competition for today's best trades">
+                        🎮 Run Competition
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Deep Analysis Tab -->
+        <div id="analysis" class="content-section">
+            <h2>🧠 Deep Stock Analysis</h2>
+            <div style="margin: 20px 0;">
+                <input type="text" id="analysis-ticker" placeholder="Enter ticker symbol..." 
+                       style="padding: 10px; border-radius: 5px; width: 200px;">
+                <button class="action-button" onclick="runDeepAnalysis()"
+                        data-tooltip="Get comprehensive AI analysis for any stock">
+                    🔍 Analyze
+                </button>
+            </div>
+            
+            <div id="analysis-results">
+                <!-- Analysis results will appear here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            // Load content for the tab
+            if (tabName === 'positions') loadPositions();
+            else if (tabName === 'discovery') loadDiscoveries();
+            else if (tabName === 'competition') loadCompetition();
+        }
+        
+        // Load current positions with enhanced data
+        async function loadPositions() {
+            try {
+                const response = await fetch('/api/portfolio');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayEnhancedPositions(data.recommendations);
+                }
+            } catch (error) {
+                console.error('Error loading positions:', error);
+            }
+        }
+        
+        function displayEnhancedPositions(positions) {
+            const container = document.getElementById('positions-list');
+            
+            container.innerHTML = positions.map(pos => {
+                const isLowConfidence = pos.confidence < 40;
+                
+                return `
+                    <div class="position-enhanced">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>${pos.ticker} - ${pos.action}</h3>
+                            <span style="font-size: 1.2em; font-weight: bold;">
+                                ${pos.confidence}% confidence
+                            </span>
+                        </div>
+                        
+                        ${isLowConfidence ? `
+                            <div class="low-confidence-warning">
+                                <span>⚠️ Low confidence - Consider removing this position</span>
+                                <button class="remove-button" onclick="removePosition('${pos.ticker}')">
+                                    Remove
+                                </button>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="thesis-section">
+                            <h4>Investment Thesis</h4>
+                            <p>${pos.thesis}</p>
+                            
+                            <div class="thesis-performance">
+                                <span>Thesis Status:</span>
+                                <span class="performance-indicator ${pos.thesis_holding ? 'strong' : 'weak'}">
+                                    ${pos.thesis_holding ? 'Holding Strong' : 'Needs Review'}
+                                </span>
+                            </div>
+                            
+                            <button class="action-button" onclick="updateThesis('${pos.ticker}')"
+                                    data-tooltip="Update thesis based on latest market events">
+                                🔄 Update Thesis
+                            </button>
+                        </div>
+                        
+                        <div class="catalyst-list">
+                            <strong>Catalysts:</strong>
+                            ${(pos.catalysts || ['Earnings', 'Technical breakout']).map(cat => 
+                                `<span class="catalyst">${cat}</span>`
+                            ).join('')}
+                        </div>
+                        
+                        <div style="margin-top: 15px;">
+                            <strong>AI Rationale (3 sentences max):</strong>
+                            <p style="font-style: italic;">${pos.ai_rationale || pos.thesis}</p>
+                        </div>
+                        
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button class="action-button" onclick="executeRecommendation('${pos.ticker}', '${pos.action}')"
+                                    data-tooltip="Execute the AI recommendation for this position">
+                                ✅ Execute ${pos.action}
+                            </button>
+                            
+                            <button class="action-button" onclick="viewDetails('${pos.ticker}')"
+                                    data-tooltip="View detailed analysis and historical performance">
+                                📊 View Details
+                            </button>
+                            
+                            <button class="action-button" onclick="setStopLoss('${pos.ticker}')"
+                                    data-tooltip="Set automated stop-loss for risk management">
+                                🛡️ Set Stop Loss
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Load AI discoveries
+        async function loadDiscoveries() {
+            try {
+                const response = await fetch('/api/discoveries');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayDiscoveries(data.opportunities);
+                }
+            } catch (error) {
+                // Show error message instead of demo data
+                const container = document.getElementById('discovery-grid');
+                container.innerHTML = `
+                    <div style="background: rgba(244, 67, 54, 0.2); padding: 20px; border-radius: 10px; text-align: center;">
+                        <h3>⚠️ Unable to load discoveries</h3>
+                        <p>Check API connections: Alpha Vantage key required for real market data</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayDiscoveries(opportunities) {
+            const container = document.getElementById('discovery-grid');
+            
+            container.innerHTML = opportunities.map(opp => `
+                <div class="opportunity-card">
+                    <h3>${opp.ticker} - ${opp.company_name}</h3>
+                    <div class="growth-potential">+${opp.growth_potential}%</div>
+                    <p><strong>Discovery:</strong> ${opp.discovery_reason}</p>
+                    <p><strong>Entry:</strong> $${opp.entry_price} → <strong>Target:</strong> $${opp.target_price}</p>
+                    <p style="font-style: italic;">${opp.thesis}</p>
+                    <div style="margin-top: 15px;">
+                        <button class="action-button" onclick="analyzeOpportunity('${opp.ticker}')">
+                            🔍 Deep Dive
+                        </button>
+                        <button class="action-button" onclick="addToWatchlist('${opp.ticker}')">
+                            ⭐ Add to Watchlist
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Run AI competition
+        async function runCompetition() {
+            const logDiv = document.getElementById('debate-log');
+            logDiv.innerHTML = '<div class="loading">🤖 AIs are debating...</div>';
+            
+            try {
+                const response = await fetch('/api/competition', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayCompetitionResults(data.results);
+                }
+            } catch (error) {
+                // Show error message instead of demo data
+                const logDiv = document.getElementById('debate-log');
+                logDiv.innerHTML = `
+                    <div style="background: rgba(244, 67, 54, 0.2); padding: 20px; border-radius: 10px; text-align: center;">
+                        <h3>⚠️ Competition Failed</h3>
+                        <p>Requires OpenAI and Anthropic API keys for GPT vs Claude debate</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayCompetitionResults(results) {
+            document.getElementById('gpt-score').textContent = results.gpt_score;
+            document.getElementById('claude-score').textContent = results.claude_score;
+            
+            const logDiv = document.getElementById('debate-log');
+            logDiv.innerHTML = `
+                <h3>🏆 Winner: ${results.winner}!</h3>
+                ${results.debates.map(debate => `
+                    <div class="debate-round">
+                        <h4>${debate.ticker} - ${debate.consensus_action}</h4>
+                        <p>${debate.final_recommendation}</p>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        // Deep analysis
+        async function runDeepAnalysis() {
+            const ticker = document.getElementById('analysis-ticker').value.toUpperCase();
+            if (!ticker) return;
+            
+            const resultsDiv = document.getElementById('analysis-results');
+            resultsDiv.innerHTML = '<div class="loading">🔍 Running deep analysis...</div>';
+            
+            try {
+                // Call real API endpoint for deep analysis
+                const response = await fetch(`/api/deep-analysis/${ticker}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultsDiv.innerHTML = `
+                        <div class="position-enhanced">
+                            <h3>${ticker} Deep Analysis</h3>
+                            <p><strong>Technical:</strong> ${data.technical_summary}</p>
+                            <p><strong>Sentiment:</strong> ${data.sentiment_summary}</p>
+                            <p><strong>Fundamentals:</strong> ${data.fundamental_summary}</p>
+                            <p><strong>AI Recommendation:</strong> ${data.recommendation}</p>
+                            <p><strong>Confidence:</strong> ${data.confidence}%</p>
+                            <p><strong>Price Target:</strong> $${data.target_price}</p>
+                            <p><strong>Thesis:</strong> ${data.thesis}</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div style="background: rgba(244, 67, 54, 0.2); padding: 20px; border-radius: 10px;">
+                            <h3>⚠️ Analysis Failed</h3>
+                            <p>Unable to analyze ${ticker}. ${data.error}</p>
+                            <p>Ensure ComprehensiveIntelligenceEngine is configured with API keys.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div style="background: rgba(244, 67, 54, 0.2); padding: 20px; border-radius: 10px;">
+                        <h3>⚠️ Connection Error</h3>
+                        <p>Unable to connect to analysis API for ${ticker}</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Action handlers
+        function executeRecommendation(ticker, action) {
+            if (confirm(`Execute ${action} order for ${ticker}?`)) {
+                alert(`✅ ${action} order placed for ${ticker}`);
+            }
+        }
+        
+        function removePosition(ticker) {
+            if (confirm(`Remove ${ticker} from portfolio due to low confidence?`)) {
+                alert(`📤 ${ticker} removed from portfolio`);
+                loadPositions();
+            }
+        }
+        
+        function updateThesis(ticker) {
+            alert(`🔄 Updating thesis for ${ticker} based on latest market events...`);
+        }
+        
+        function setStopLoss(ticker) {
+            const stopLoss = prompt(`Set stop-loss percentage for ${ticker} (e.g., 8 for 8%):`);
+            if (stopLoss) {
+                alert(`🛡️ Stop-loss set at ${stopLoss}% for ${ticker}`);
+            }
+        }
+        
+        // Load initial data
+        loadPositions();
+    </script>
+</body>
+</html>

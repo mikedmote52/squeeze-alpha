@@ -1,0 +1,33 @@
+🚀 CRITICAL FILES TO UPLOAD TO YOUR REPLIT
+
+PRIORITY 1 - SAFETY SYSTEM (Upload These First):
+✅ core/trading_safety_validator.py
+✅ core/trading_safety_enforcer.py  
+✅ core/secrets_manager.py
+
+PRIORITY 2 - ENHANCED DISCOVERY:
+✅ core/real_time_stock_discovery.py
+✅ core/real_time_ai_debate.py
+✅ core/real_time_portfolio_engine.py
+
+PRIORITY 3 - UPDATED CORE SYSTEMS:
+✅ core/enhanced_ai_consensus.py
+✅ core/stock_discovery_engine.py
+✅ start_autonomous_system.py
+
+PRIORITY 4 - TESTING & SETUP:
+✅ test_api_keys.py
+✅ setup_replit_secrets.py
+
+PRIORITY 5 - DOCUMENTATION:
+✅ REAL_DATA_STATUS.md
+✅ REPLIT_SETUP.md
+✅ REPLIT_UPDATE_GUIDE.md
+✅ QUICK_TEST_COMMANDS.md
+
+AFTER UPLOADING, RUN:
+1. python3 setup_replit_secrets.py
+2. python3 core/trading_safety_validator.py
+3. python3 core/real_time_stock_discovery.py
+
+THEN ADD YOUR API KEYS TO REPLIT SECRETS TAB!

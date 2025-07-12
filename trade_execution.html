@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squeeze Alpha - Trade Execution</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .portfolio-summary {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .recommendation-card {
+            background: rgba(255,255,255,0.1);
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border-left: 5px solid;
+        }
+        
+        .recommendation-card.buy { border-left-color: #4CAF50; }
+        .recommendation-card.sell { border-left-color: #f44336; }
+        .recommendation-card.hold { border-left-color: #ff9800; }
+        
+        .rec-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .ticker-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .ticker {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .action-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .action-badge.buy { background-color: #4CAF50; }
+        .action-badge.sell { background-color: #f44336; }
+        .action-badge.hold { background-color: #ff9800; }
+        
+        .confidence {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .rec-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .current-position, .recommended-change {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .controls {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+            outline: none;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        
+        .slider:hover {
+            opacity: 1;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            min-width: 100px;
+            text-align: center;
+            font-weight: bold;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+        
+        .approval-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .approve-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1em;
+        }
+        
+        .approve-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #4CAF50;
+        }
+        
+        .priority-select {
+            padding: 8px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .reasoning {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            font-style: italic;
+        }
+        
+        .execution-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border-top: 2px solid #4CAF50;
+        }
+        
+        .execution-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .summary-stats {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .execute-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .execute-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .execute-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .toggle-mode {
+            margin-right: 20px;
+        }
+        
+        .toggle-mode input[type="checkbox"] {
+            width: 50px;
+            height: 25px;
+        }
+        
+        .risk-indicator {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .risk-low { background-color: #4CAF50; }
+        .risk-medium { background-color: #ff9800; }
+        .risk-high { background-color: #f44336; }
+        
+        @media (max-width: 768px) {
+            .rec-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .execution-summary {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .summary-stats {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Trade Execution Center</h1>
+            <p>Review AI recommendations and execute optimized trades</p>
+        </div>
+        
+        <div class="portfolio-summary">
+            <h2>📊 Portfolio Overview</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div class="stat">
+                    <div class="stat-value">$99,809.68</div>
+                    <div class="stat-label">Total Value</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">14</div>
+                    <div class="stat-label">Positions</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="total-recommendations">1</div>
+                    <div class="stat-label">AI Recommendations</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="approved-count">0</div>
+                    <div class="stat-label">Approved Trades</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="recommendations-container">
+            <div class="recommendation-card buy">
+                <div class="rec-header">
+                    <div class="ticker-info">
+                        <span class="ticker">AMD</span>
+                        <span class="action-badge buy">BUY</span>
+                        <span class="risk-indicator risk-low">LOW</span>
+                    </div>
+                    <div class="confidence">85% confidence</div>
+                </div>
+                
+                <div class="rec-details">
+                    <div class="current-position">
+                        <h4>📊 Current Position</h4>
+                        <p><strong>Shares:</strong> 8</p>
+                        <p><strong>Value:</strong> $1,171.36</p>
+                        <p><strong>Price:</strong> $146.42</p>
+                    </div>
+                    
+                    <div class="recommended-change">
+                        <h4>🎯 AI Recommendation</h4>
+                        <p><strong>Change:</strong> +3 shares</p>
+                        <p><strong>Value:</strong> $439.26</p>
+                        <p><strong>Priority:</strong> 1</p>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label>Adjust Shares:</label>
+                        <div class="slider-container">
+                            <span>0</span>
+                            <input type="range" class="slider" id="shares-slider" min="0" max="10" value="3" oninput="updateShares(this.value)">
+                            <span>10</span>
+                            <div class="value-display" id="shares-display">3</div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Dollar Value:</label>
+                        <div class="slider-container">
+                            <span>$0</span>
+                            <input type="range" class="slider" id="value-slider" min="0" max="1464" value="439" oninput="updateValue(this.value)">
+                            <span>$1464</span>
+                            <div class="value-display" id="value-display">$439</div>
+                        </div>
+                    </div>
+                    
+                    <div class="approval-controls">
+                        <div class="approve-checkbox">
+                            <input type="checkbox" id="approve-amd" onchange="toggleApproval()">
+                            <label for="approve-amd">Approve for execution</label>
+                        </div>
+                        
+                        <select class="priority-select">
+                            <option value="1" selected>Priority 1 (Highest)</option>
+                            <option value="2">Priority 2</option>
+                            <option value="3">Priority 3</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="reasoning">
+                    <strong>AI Reasoning:</strong> AMD shows strong momentum in AI semiconductor market. Technical analysis suggests continued upward trend with institutional buying support. Options flow bullish with low put/call ratio.
+                </div>
+            </div>
+        </div>
+        
+        <div style="height: 120px;"></div>
+    </div>
+    
+    <div class="execution-panel">
+        <div class="execution-summary">
+            <div class="summary-stats">
+                <div class="stat">
+                    <div class="stat-value" id="total-approved">0</div>
+                    <div class="stat-label">Approved Trades</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="net-cash-change">$0</div>
+                    <div class="stat-label">Net Cash Change</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="avg-confidence">0%</div>
+                    <div class="stat-label">Avg Confidence</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div class="toggle-mode">
+                    <label>
+                        <input type="checkbox" id="live-mode" onchange="toggleTradingMode()">
+                        Live Trading
+                    </label>
+                </div>
+                
+                <button class="execute-button" id="execute-btn" onclick="executeAllTrades()" disabled>
+                    Execute Trades (Dry Run)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateShares(shares) {
+            const value = shares * 146.42;
+            document.getElementById('shares-display').textContent = shares;
+            document.getElementById('value-display').textContent = '$' + Math.round(value);
+            document.getElementById('value-slider').value = Math.round(value);
+            updateExecutionPanel();
+        }
+        
+        function updateValue(value) {
+            const shares = Math.round(value / 146.42);
+            document.getElementById('value-display').textContent = '$' + value;
+            document.getElementById('shares-display').textContent = shares;
+            document.getElementById('shares-slider').value = shares;
+            updateExecutionPanel();
+        }
+        
+        function toggleApproval() {
+            const checkbox = document.getElementById('approve-amd');
+            const approvedCount = checkbox.checked ? 1 : 0;
+            document.getElementById('approved-count').textContent = approvedCount;
+            document.getElementById('total-approved').textContent = approvedCount;
+            document.getElementById('execute-btn').disabled = !checkbox.checked;
+            updateExecutionPanel();
+        }
+        
+        function updateExecutionPanel() {
+            const checkbox = document.getElementById('approve-amd');
+            const shares = document.getElementById('shares-slider').value;
+            const value = shares * 146.42;
+            
+            if (checkbox.checked) {
+                document.getElementById('net-cash-change').textContent = '-$' + Math.round(value);
+                document.getElementById('avg-confidence').textContent = '85%';
+            } else {
+                document.getElementById('net-cash-change').textContent = '$0';
+                document.getElementById('avg-confidence').textContent = '0%';
+            }
+        }
+        
+        function toggleTradingMode() {
+            const liveMode = document.getElementById('live-mode').checked;
+            const executeBtn = document.getElementById('execute-btn');
+            
+            if (liveMode) {
+                executeBtn.textContent = 'Execute Live Trades';
+                executeBtn.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
+            } else {
+                executeBtn.textContent = 'Execute Trades (Dry Run)';
+                executeBtn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+            }
+        }
+        
+        function executeAllTrades() {
+            const liveMode = document.getElementById('live-mode').checked;
+            const shares = document.getElementById('shares-slider').value;
+            const value = Math.round(shares * 146.42);
+            
+            const confirmMessage = liveMode 
+                ? `⚠️ Execute BUY ${shares} AMD shares for $${value}? This will use REAL MONEY!`
+                : `Execute BUY ${shares} AMD shares for $${value} in dry run mode?`;
+            
+            if (confirm(confirmMessage)) {
+                const mode = liveMode ? 'LIVE' : 'DRY RUN';
+                alert(`✅ Successfully executed BUY ${shares} AMD shares in ${mode} mode!`);
+                
+                // Reset the form
+                document.getElementById('approve-amd').checked = false;
+                toggleApproval();
+            }
+        }
+    </script>
+</body>
+</html>

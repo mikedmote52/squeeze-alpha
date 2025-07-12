@@ -149,14 +149,16 @@ def discover_stocks():
         print(f"❌ Discovery failed: {e}")
 
 def analyze_portfolio():
-    """Analyze current portfolio using live Alpaca data"""
-    print("\n💰 ANALYZING YOUR PORTFOLIO...")
+    """Analyze current portfolio with hedge fund-level intelligence"""
+    print("\n🧠 HEDGE FUND-LEVEL PORTFOLIO ANALYSIS")
+    print("=" * 60)
+    print("🔍 Gathering comprehensive market intelligence...")
     
     try:
         from live_portfolio_engine import LivePortfolioEngine
         import asyncio
         
-        # Use real portfolio engine
+        # Use enhanced portfolio engine
         engine = LivePortfolioEngine()
         positions = asyncio.run(engine.get_live_portfolio())
         summary = engine.generate_portfolio_summary(positions)
@@ -167,14 +169,73 @@ def analyze_portfolio():
         print(f"Winners: {summary['winners_count']} | Losers: {summary['losers_count']}")
         print(f"AI Recommendations: {summary['buy_recommendations']} BUY | {summary['sell_recommendations']} SELL | {summary['hold_recommendations']} HOLD")
         
-        print(f"\n🏆 TOP POSITIONS:")
-        for i, pos in enumerate(positions[:5], 1):
-            print(f"{i}. {pos.ticker}: ${pos.market_value:,.0f} ({pos.current_allocation:.1f}%) - {pos.ai_recommendation} {pos.ai_confidence}%")
+        print(f"\n🎯 HEDGE FUND RECOMMENDATIONS:")
+        print("=" * 50)
+        
+        # Sort by recommendation priority (SELL first, then BUY, then HOLD)
+        sorted_positions = sorted(positions, key=lambda x: (
+            0 if x.ai_recommendation == 'SELL' else 
+            1 if x.ai_recommendation == 'BUY' else 2,
+            -x.ai_confidence
+        ))
+        
+        for pos in sorted_positions:
+            # Color coding for terminal
+            if pos.ai_recommendation == 'BUY':
+                action_color = "🟢"
+            elif pos.ai_recommendation == 'SELL':
+                action_color = "🔴"
+            else:
+                action_color = "🟡"
+            
+            # Performance indicator
+            perf_indicator = "📈" if pos.unrealized_pl >= 0 else "📉"
+            
+            print(f"\n{action_color} {pos.ticker} - {pos.company_name}")
+            print(f"   💰 Value: ${pos.market_value:,.0f} ({pos.current_allocation:.1f}% of portfolio)")
+            print(f"   {perf_indicator} P&L: ${pos.unrealized_pl:+,.0f} ({pos.unrealized_pl_percent:+.1f}%) | Today: {pos.day_change_percent:+.1f}%")
+            print(f"   🤖 AI Rec: {pos.ai_recommendation} ({pos.ai_confidence}% confidence)")
+            print(f"   ⚖️ Position: {pos.position_size_rec} to {pos.target_allocation:.1f}% allocation")
+            print(f"   🏷️ Risk: {pos.risk_level} | Sector: {pos.sector}")
+            print(f"   📝 Thesis: {pos.thesis[:100]}...")
+            
+            # Show intelligence factors if available
+            if hasattr(pos, 'intelligence_used') and pos.intelligence_used:
+                print(f"   🧠 Intelligence: {pos.data_sources} active data sources")
+        
+        # Optimization recommendations
+        print(f"\n🎯 PORTFOLIO OPTIMIZATION PRIORITIES:")
+        print("=" * 40)
+        
+        sell_positions = [p for p in positions if p.ai_recommendation == 'SELL']
+        buy_positions = [p for p in positions if p.ai_recommendation == 'BUY']
+        
+        if sell_positions:
+            print("🔴 IMMEDIATE SELLS:")
+            for pos in sell_positions[:3]:
+                print(f"   • {pos.ticker}: {pos.ai_confidence}% confidence - Cut to {pos.target_allocation:.1f}%")
+        
+        if buy_positions:
+            print("🟢 ACCUMULATION TARGETS:")
+            for pos in buy_positions[:3]:
+                print(f"   • {pos.ticker}: {pos.ai_confidence}% confidence - Increase to {pos.target_allocation:.1f}%")
+        
+        # Risk analysis
+        high_risk_positions = [p for p in positions if p.risk_level == 'HIGH']
+        if high_risk_positions:
+            print("⚠️ HIGH RISK POSITIONS:")
+            for pos in high_risk_positions[:3]:
+                print(f"   • {pos.ticker}: {pos.current_allocation:.1f}% allocation - Monitor closely")
+        
+        print(f"\n💡 ACCESS FULL ANALYSIS:")
+        print("   🌐 Start web interface (Option 5) for clickable stock tiles")
+        print("   📊 Each tile shows complete thesis, news, and recommendations")
         
     except ImportError:
         print("❌ Portfolio engine not found. Upload core/live_portfolio_engine.py")
     except Exception as e:
         print(f"❌ Portfolio analysis failed: {e}")
+        print("💡 Falling back to basic analysis - check API keys and restart")
 
 def start_full_system():
     """Start the full autonomous trading system"""

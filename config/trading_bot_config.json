@@ -1,0 +1,19 @@
+{
+  "alpaca": {
+    "api_key": "PKX1WGCF0D3XXA9LBAR8",
+    "secret_key": "vCQUe2hVPNLLvkw4DxvilEngZtk5zvCs7jsWT3nR",
+    "base_url": "https://paper-api.alpaca.markets/v2"
+  },
+  "news_api": {
+    "api_key": "f78485fb0d4e4af59f74822bdf57fc70"
+  },
+  "openai": {
+    "api_key": "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"
+  },
+  "anthropic": {
+    "api_key": "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"
+  },
+  "slack": {
+    "webhook_url": "https://hooks.slack.com/services/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"
+  }
+}
