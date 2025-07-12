@@ -46,12 +46,13 @@
 Add these new API keys to your `.env` file:
 ```bash
 # NEW KEYS FOR ENHANCED INTELLIGENCE
-TWITTER_BEARER_TOKEN=your_twitter_bearer_token_here
+TWITTER_BEARER_TOKEN=AAAAAAAAAAAAAAAAAAAAACYh3AEAAAAAhLnECQo%2FBzFHd1CzhfWcQFSXKmM%3DR4FGyep7bBaxjnxwNZLTyMhgoawO2ZmXD9snHESZzV8xzdY50O
 BENZINGA_API_KEY=bz.JOBHAC4OHSH24DRI7X53W2EE7OXGU4QS
 QUIVER_QUANT_API_KEY=your_quiver_quant_api_key_here
 ```
 
-**✅ You already have Benzinga configured!**
+**✅ You already have Twitter & Benzinga configured!**
+**⚠️ Only Quiver Quant (congressional data) is optional**
 
 **How to get these keys:**
 - **Twitter Bearer Token**: https://developer.twitter.com/en/portal/dashboard
