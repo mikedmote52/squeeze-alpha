@@ -1,0 +1,207 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Custom scrollbar styles */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom line clamp utilities */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom animations */
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Robinhood-inspired button styles */
+.btn-primary {
+  @apply bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5;
+}
+
+.btn-secondary {
+  @apply bg-white border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all duration-200;
+}
+
+/* Card styles similar to Public/Robinhood */
+.trading-card {
+  @apply bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1;
+}
+
+/* Status indicators */
+.status-indicator {
+  @apply w-2 h-2 rounded-full;
+}
+
+.status-green {
+  @apply bg-green-500;
+}
+
+.status-red {
+  @apply bg-red-500;
+}
+
+.status-yellow {
+  @apply bg-yellow-500;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .mobile-grid {
+    @apply grid-cols-1;
+  }
+  
+  .mobile-text-sm {
+    @apply text-sm;
+  }
+  
+  .mobile-p-4 {
+    @apply p-4;
+  }
+}
+
+/* Focus states for accessibility */
+button:focus,
+input:focus,
+select:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-opacity-50;
+}
+
+/* Custom tooltip styles */
+.tooltip {
+  @apply absolute z-50 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-lg opacity-0 pointer-events-none transition-opacity duration-200;
+}
+
+.tooltip.show {
+  @apply opacity-100;
+}
+
+/* Loading spinner */
+.spinner {
+  @apply inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
+}
+
+/* Performance chart colors */
+.chart-green {
+  @apply text-green-600;
+}
+
+.chart-red {
+  @apply text-red-600;
+}
+
+.chart-neutral {
+  @apply text-gray-600;
+}
+
+/* AI consensus bar specific styles */
+.consensus-bar {
+  @apply relative overflow-hidden bg-gray-200 rounded-lg;
+}
+
+.consensus-segment {
+  @apply absolute top-0 h-full transition-all duration-500 ease-in-out;
+}
+
+/* Catalyst timeline styles */
+.catalyst-timeline {
+  @apply space-y-4;
+}
+
+.catalyst-event {
+  @apply bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200;
+}
+
+/* Trade card specific styles */
+.trade-card {
+  @apply bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200;
+}
+
+.trade-metrics {
+  @apply grid grid-cols-2 gap-4;
+}
+
+/* Alpha replay styles */
+.alpha-replay-modal {
+  @apply fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4;
+}
+
+.alpha-replay-content {
+  @apply bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden;
+}
+
+/* Responsive utilities */
+@screen sm {
+  .sm-hide {
+    @apply hidden;
+  }
+}
+
+@screen md {
+  .md-show {
+    @apply block;
+  }
+}
+
+/* Custom utilities for financial data */
+.price-positive {
+  @apply text-green-600;
+}
+
+.price-negative {
+  @apply text-red-600;
+}
+
+.price-neutral {
+  @apply text-gray-600;
+}
+
+/* Custom border styles */
+.border-success {
+  @apply border-green-200;
+}
+
+.border-danger {
+  @apply border-red-200;
+}
+
+.border-warning {
+  @apply border-yellow-200;
+}
+
+/* Glassmorphism effect for overlays */
+.glass {
+  @apply backdrop-blur-md bg-white bg-opacity-90;
+}
+
+/* Custom shadows */
+.shadow-catalyst {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-trade {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
