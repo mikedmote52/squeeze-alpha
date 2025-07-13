@@ -1,0 +1,28 @@
+[
+  {
+    "ticker": "NVDA",
+    "system_source": "alpha_engine",
+    "recommendation_date": "2025-07-12T23:06:36.410958",
+    "entry_price": 450.0,
+    "current_price": 164.9199981689453,
+    "exit_price": 164.9199981689453,
+    "return_pct": -63.35111151801215,
+    "days_held": 0,
+    "status": "stopped_out",
+    "confidence_score": 0.85,
+    "actual_outcome": "loss"
+  },
+  {
+    "ticker": "SAVA",
+    "system_source": "catalyst_engine",
+    "recommendation_date": "2025-07-12T23:06:36.411140",
+    "entry_price": 25.0,
+    "current_price": 2.130000114440918,
+    "exit_price": 2.130000114440918,
+    "return_pct": -91.47999954223633,
+    "days_held": 0,
+    "status": "stopped_out",
+    "confidence_score": 0.9,
+    "actual_outcome": "loss"
+  }
+]

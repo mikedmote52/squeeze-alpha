@@ -661,8 +661,18 @@ WEB_TEMPLATE = """
             </div>
             
             <div class="menu-item" onclick="runCommand('discover_stocks')">
-                <h3>🔍 Enhanced Alpha Discovery</h3>
-                <p>Professional-grade stock discovery with quality filters</p>
+                <h3>📊 Alpha Discovery</h3>
+                <p>Momentum, volume spikes, institutional-grade filtering</p>
+            </div>
+            
+            <div class="menu-item" onclick="runCommand('discover_catalysts')">
+                <h3>🎯 Catalyst Discovery</h3>
+                <p>FDA approvals, earnings, M&A, regulatory events</p>
+            </div>
+            
+            <div class="menu-item" onclick="runCommand('system_performance')">
+                <h3>🏆 System Performance</h3>
+                <p>Track which discovery system is winning</p>
             </div>
             
             <div class="menu-item" onclick="runCommand('ai_debate')">
@@ -848,7 +858,21 @@ def api_command(command):
         elif command == 'discover_stocks':
             result = run_stock_discovery()
             return jsonify({
-                'title': '📊 Stock Discovery Results',
+                'title': '📊 Alpha Discovery Results',
+                'content': result
+            })
+        
+        elif command == 'discover_catalysts':
+            result = run_catalyst_discovery()
+            return jsonify({
+                'title': '🎯 Catalyst Discovery Results',
+                'content': result
+            })
+        
+        elif command == 'system_performance':
+            result = run_system_performance()
+            return jsonify({
+                'title': '🏆 System Performance Comparison',
                 'content': result
             })
         
@@ -1053,6 +1077,34 @@ def run_stock_discovery():
     
     except Exception as e:
         return f"❌ Enhanced alpha discovery failed: {str(e)}"
+
+def run_catalyst_discovery():
+    """Run catalyst discovery engine for binary events"""
+    try:
+        import asyncio
+        from catalyst_discovery_engine import CatalystDiscoveryEngine
+        
+        async def discover():
+            engine = CatalystDiscoveryEngine()
+            return await engine.discover_catalyst_opportunities_for_main()
+        
+        return asyncio.run(discover())
+    except Exception as e:
+        return f"❌ Catalyst discovery failed: {str(e)}"
+
+def run_system_performance():
+    """Run system performance comparison and tracking"""
+    try:
+        import asyncio
+        from discovery_system_tracker import DiscoverySystemTracker
+        
+        async def analyze():
+            tracker = DiscoverySystemTracker()
+            return await tracker.generate_system_comparison_report()
+        
+        return asyncio.run(analyze())
+    except Exception as e:
+        return f"❌ System performance analysis failed: {str(e)}"
 
 def run_portfolio_analysis():
     try:
