@@ -160,11 +160,11 @@ def main():
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("💰 Portfolio Analysis", key="portfolio_btn"):
-            with st.spinner("💰 Analyzing Portfolio..."):
-                result = run_portfolio_analysis()
+        if st.button("💰 Live Portfolio", key="portfolio_btn"):
+            with st.spinner("💰 Loading Live Holdings..."):
+                result = run_live_portfolio()
                 st.session_state.last_result = result
-                st.session_state.result_type = "Portfolio Analysis"
+                st.session_state.result_type = "Live Portfolio"
     
     with col2:
         if st.button("🔍 Market Check", key="market_btn"):
@@ -230,6 +230,16 @@ def run_system_performance():
         return run_system_performance()
     except Exception as e:
         return f"❌ System performance analysis failed: {str(e)}"
+
+@st.cache_data(ttl=60)  # Cache for 1 minute for live data
+def run_live_portfolio():
+    """Run live portfolio tracking"""
+    try:
+        import asyncio
+        from live_portfolio_integration import get_live_portfolio_for_mobile
+        return asyncio.run(get_live_portfolio_for_mobile())
+    except Exception as e:
+        return f"❌ Live portfolio failed: {str(e)}"
 
 @st.cache_data(ttl=300)
 def run_portfolio_analysis():
