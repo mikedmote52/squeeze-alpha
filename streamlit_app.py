@@ -94,35 +94,51 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # Quick stats row
-    col1, col2, col3 = st.columns(3)
+    # Stock Tiles Section
+    st.markdown("### 📈 **Live Stock Dashboard**")
+    
+    # Filter controls
+    col1, col2, col3 = st.columns([2, 2, 1])
     
     with col1:
-        st.markdown("""
-        <div class="metric-card">
-            <h3>📊</h3>
-            <p>Alpha Engine</p>
-            <small>Momentum & Volume</small>
-        </div>
-        """, unsafe_allow_html=True)
+        filter_type = st.selectbox(
+            "Filter by:",
+            ["all", "gainers", "losers", "volume", "market_cap", "volatility"],
+            format_func=lambda x: {
+                "all": "🔄 All Stocks",
+                "gainers": "🟢 Top Gainers", 
+                "losers": "🔴 Top Losers",
+                "volume": "📊 High Volume",
+                "market_cap": "💰 Market Cap",
+                "volatility": "⚡ Most Volatile"
+            }.get(x, x)
+        )
     
     with col2:
-        st.markdown("""
-        <div class="metric-card">
-            <h3>🎯</h3>
-            <p>Catalyst Engine</p>
-            <small>Binary Events</small>
-        </div>
-        """, unsafe_allow_html=True)
+        watchlist_type = st.selectbox(
+            "Watchlist:",
+            ["portfolio", "default", "custom"],
+            format_func=lambda x: {
+                "portfolio": "💼 My Holdings",
+                "default": "⭐ Top Stocks", 
+                "custom": "🎯 Custom List"
+            }.get(x, x)
+        )
     
     with col3:
-        st.markdown("""
-        <div class="metric-card">
-            <h3>🏆</h3>
-            <p>Performance</p>
-            <small>System Tracking</small>
-        </div>
-        """, unsafe_allow_html=True)
+        if st.button("🔄", help="Refresh data"):
+            st.cache_data.clear()
+            st.rerun()
+    
+    # Get stock tiles
+    with st.spinner("📊 Loading live stock data..."):
+        stock_tiles = get_live_stock_tiles(watchlist_type, filter_type)
+    
+    # Display stock tiles
+    if stock_tiles:
+        display_stock_tiles(stock_tiles)
+    else:
+        st.warning("📊 No stock data available. Check API connections.")
     
     st.markdown("---")
     
@@ -282,6 +298,270 @@ def run_market_check():
         
     except Exception as e:
         return f"❌ Market check failed: {str(e)}"
+
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def get_live_stock_tiles(watchlist_type: str, filter_type: str):
+    """Get live stock tiles with caching"""
+    try:
+        import asyncio
+        from interactive_stock_tiles import get_stock_tiles_for_streamlit
+        from live_portfolio_integration import LivePortfolioIntegration
+        
+        # Determine symbols based on watchlist type
+        if watchlist_type == "portfolio":
+            # Get symbols from portfolio holdings
+            portfolio = LivePortfolioIntegration()
+            portfolio_data = asyncio.run(portfolio.get_live_portfolio())
+            symbols = [h.symbol for h in portfolio_data.holdings] if portfolio_data.holdings else ['AAPL', 'NVDA', 'MSFT']
+        elif watchlist_type == "custom":
+            # Allow custom symbols (future enhancement)
+            symbols = ['AAPL', 'NVDA', 'TSLA', 'GOOGL', 'MSFT', 'AMD', 'META']
+        else:
+            # Default watchlist
+            symbols = ['AAPL', 'NVDA', 'TSLA', 'GOOGL', 'MSFT', 'AMD', 'META', 'AMZN', 'NFLX', 'SPY']
+        
+        return asyncio.run(get_stock_tiles_for_streamlit(symbols, filter_type))
+        
+    except Exception as e:
+        st.error(f"Error loading stock tiles: {e}")
+        return []
+
+def display_stock_tiles(tiles):
+    """Display interactive stock tiles"""
+    
+    # Display tiles in a grid
+    cols_per_row = 3
+    
+    for i in range(0, len(tiles), cols_per_row):
+        cols = st.columns(cols_per_row)
+        
+        for j, col in enumerate(cols):
+            if i + j < len(tiles):
+                tile = tiles[i + j]
+                
+                with col:
+                    display_stock_tile(tile)
+
+def display_stock_tile(tile):
+    """Display a single interactive stock tile"""
+    
+    # Determine colors based on performance
+    color = "#00ff88" if tile.price_change_pct >= 0 else "#ff4444"
+    bg_color = "rgba(0, 255, 136, 0.1)" if tile.price_change_pct >= 0 else "rgba(255, 68, 68, 0.1)"
+    
+    # Create tile HTML
+    tile_html = f"""
+    <div style="
+        background: {bg_color};
+        border: 2px solid {color};
+        border-radius: 15px;
+        padding: 15px;
+        margin: 10px 0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    ">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 style="margin: 0; color: white; font-size: 1.2em;">{tile.symbol}</h3>
+                <p style="margin: 0; color: #ccc; font-size: 0.8em;">{tile.company_name[:20]}...</p>
+            </div>
+            <div style="text-align: right;">
+                <h3 style="margin: 0; color: white;">${tile.current_price:.2f}</h3>
+                <p style="margin: 0; color: {color};">{tile.price_change_pct:+.1f}%</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 10px; font-size: 0.7em; color: #aaa;">
+            Vol: {tile.volume/1000000:.1f}M | RSI: {tile.key_metrics.get('rsi', 50):.0f}
+        </div>
+        
+        <div style="margin-top: 5px; font-size: 0.7em; color: #ccc;">
+            {tile.ai_analysis.get('consensus', 'Analyzing...')}
+        </div>
+    </div>
+    """
+    
+    # Display tile with click functionality
+    if st.button(f"Click for {tile.symbol} details", key=f"tile_{tile.symbol}", help=f"View detailed analysis for {tile.symbol}"):
+        show_stock_details(tile)
+    
+    # Display the tile HTML
+    st.markdown(tile_html, unsafe_allow_html=True)
+
+def show_stock_details(tile):
+    """Show detailed stock analysis with AI consultants"""
+    
+    st.markdown(f"## 📊 {tile.symbol} - {tile.company_name}")
+    
+    # Price and metrics overview
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Current Price", f"${tile.current_price:.2f}", f"{tile.price_change_pct:+.1f}%")
+    
+    with col2:
+        st.metric("Volume", f"{tile.volume/1000000:.1f}M", f"{tile.key_metrics.get('volume_ratio', 1):.1f}x avg")
+    
+    with col3:
+        st.metric("Market Cap", f"${tile.market_cap/1000000000:.1f}B")
+    
+    with col4:
+        st.metric("P/E Ratio", f"{tile.pe_ratio:.1f}" if tile.pe_ratio else "N/A")
+    
+    # Technical levels
+    st.markdown("### 📈 **Technical Levels**")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.write(f"**Day Range:** ${tile.day_low:.2f} - ${tile.day_high:.2f}")
+        st.write(f"**52W High:** ${tile.fifty_two_week_high:.2f}")
+        st.write(f"**RSI:** {tile.key_metrics.get('rsi', 50):.0f}")
+    
+    with col2:
+        st.write(f"**52W Low:** ${tile.fifty_two_week_low:.2f}")
+        st.write(f"**Beta:** {tile.beta:.2f}" if tile.beta else "N/A")
+        st.write(f"**5D Momentum:** {tile.key_metrics.get('momentum_5d', 0):+.1f}%")
+    
+    # Recent news
+    if tile.news_headlines:
+        st.markdown("### 📰 **Recent News**")
+        for headline in tile.news_headlines:
+            st.write(f"• {headline}")
+    
+    # AI Consultants
+    st.markdown("### 🤖 **AI Consultants**")
+    
+    tab1, tab2, tab3 = st.tabs(["🎯 Consensus", "🧠 Claude Analysis", "💬 ChatGPT Analysis"])
+    
+    with tab1:
+        st.write(f"**Consensus:** {tile.ai_analysis.get('consensus', 'Analyzing...')}")
+        
+        # Quick chat with consensus
+        if st.button(f"💬 Chat about {tile.symbol}", key=f"chat_consensus_{tile.symbol}"):
+            show_ai_chat(tile, "consensus")
+    
+    with tab2:
+        st.write("**Claude's Analysis:**")
+        st.write(tile.ai_analysis.get('claude_analysis', 'Analysis pending...'))
+        
+        if st.button(f"💬 Chat with Claude about {tile.symbol}", key=f"chat_claude_{tile.symbol}"):
+            show_ai_chat(tile, "claude")
+    
+    with tab3:
+        st.write("**ChatGPT's Analysis:**")
+        st.write(tile.ai_analysis.get('chatgpt_analysis', 'Analysis pending...'))
+        
+        if st.button(f"💬 Chat with ChatGPT about {tile.symbol}", key=f"chat_gpt_{tile.symbol}"):
+            show_ai_chat(tile, "chatgpt")
+
+def show_ai_chat(tile, ai_type):
+    """Show AI chat interface for specific stock"""
+    
+    st.markdown(f"### 💬 Chat with {ai_type.title()} about {tile.symbol}")
+    
+    # Chat input
+    user_question = st.text_input(f"Ask {ai_type} about {tile.symbol}:", 
+                                 placeholder=f"e.g., What's your price target for {tile.symbol}?",
+                                 key=f"chat_input_{ai_type}_{tile.symbol}")
+    
+    if user_question:
+        with st.spinner(f"🤖 {ai_type.title()} is analyzing..."):
+            response = get_ai_response(tile, user_question, ai_type)
+            st.write(f"**{ai_type.title()}:** {response}")
+
+def get_ai_response(tile, question, ai_type):
+    """Get AI response for stock-specific question"""
+    
+    try:
+        context = f"""
+        Stock: {tile.symbol} ({tile.company_name})
+        Current Price: ${tile.current_price:.2f}
+        Daily Change: {tile.price_change_pct:+.1f}%
+        Volume: {tile.volume:,}
+        Market Cap: ${tile.market_cap/1000000000:.1f}B
+        P/E Ratio: {tile.pe_ratio if tile.pe_ratio else 'N/A'}
+        Recent News: {'; '.join(tile.news_headlines[:2]) if tile.news_headlines else 'No recent news'}
+        
+        User Question: {question}
+        
+        Provide a specific, actionable response about this stock.
+        """
+        
+        if ai_type == "claude":
+            return get_claude_response(context)
+        elif ai_type == "chatgpt":
+            return get_chatgpt_response(context)
+        else:
+            return f"Based on current data: {tile.ai_analysis.get('consensus', 'Analysis pending')}"
+            
+    except Exception as e:
+        return f"Sorry, I'm having trouble analyzing {tile.symbol} right now. Error: {str(e)}"
+
+def get_claude_response(context):
+    """Get Claude response"""
+    try:
+        import os
+        
+        anthropic_key = os.getenv('ANTHROPIC_API_KEY')
+        if not anthropic_key:
+            return "Claude API key not configured"
+        
+        # Use OpenRouter for Claude (more reliable)
+        return get_openrouter_response(context, "anthropic/claude-3-sonnet")
+        
+    except Exception as e:
+        return f"Claude analysis error: {str(e)}"
+
+def get_chatgpt_response(context):
+    """Get ChatGPT response"""
+    return get_openrouter_response(context, "openai/gpt-4")
+
+def get_openrouter_response(context, model):
+    """Get response from OpenRouter"""
+    try:
+        import requests
+        import os
+        
+        openrouter_key = os.getenv('OPENROUTER_API_KEY')
+        if not openrouter_key:
+            return "OpenRouter API key not configured"
+        
+        headers = {
+            'Authorization': f'Bearer {openrouter_key}',
+            'Content-Type': 'application/json'
+        }
+        
+        payload = {
+            'model': model,
+            'messages': [
+                {
+                    'role': 'system',
+                    'content': 'You are a professional stock analyst. Provide specific, actionable insights.'
+                },
+                {
+                    'role': 'user',
+                    'content': context
+                }
+            ],
+            'max_tokens': 200,
+            'temperature': 0.3
+        }
+        
+        response = requests.post(
+            'https://openrouter.ai/api/v1/chat/completions',
+            headers=headers,
+            json=payload,
+            timeout=15
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            return result['choices'][0]['message']['content']
+        else:
+            return f"API error: {response.status_code}"
+            
+    except Exception as e:
+        return f"Analysis error: {str(e)}"
 
 if __name__ == "__main__":
     main()
