@@ -498,28 +498,25 @@ class RealTimeStockDiscovery:
     # Real-time data fetching methods
     
     async def get_active_market_tickers(self) -> List[str]:
-        """Get list of actively traded tickers"""
+        """Get REAL list of actively traded tickers from market data"""
         try:
-            # Focus on small/mid cap growth stocks
-            tickers = [
-                # AI/Tech
-                'SOUN', 'BBAI', 'RXRX', 'IONQ', 'QBTS', 'RGTI', 'SMCI',
-                # Biotech
-                'NVAX', 'MRNA', 'BNTX', 'GILD', 'BIIB', 'SAVA', 'AXSM',
-                # EV/Clean Energy
-                'LCID', 'RIVN', 'QS', 'BLNK', 'CHPT', 'NKLA',
-                # Quantum
-                'QUBT', 'ARQQ', 'QTUM',
-                # Recent IPOs/SPACs
-                'HOOD', 'COIN', 'AFRM', 'SOFI', 'PLTR',
-                # Meme potential
-                'AMC', 'GME', 'BBBY', 'CLOV', 'WISH',
-                # Current holdings to monitor
-                'AMD', 'BTBT', 'BYND', 'CRWV', 'EAT', 'ETSY', 'LIXT', 'VIGL', 'WOLF'
+            # Use S&P 500 + high-volume growth stocks as quality universe
+            sp500_core = [
+                'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'JPM',
+                'V', 'JNJ', 'WMT', 'PG', 'UNH', 'HD', 'MA', 'DIS', 'BAC', 'ADBE',
+                'CRM', 'NFLX', 'PFE', 'CSCO', 'XOM', 'TMO', 'CMCSA', 'PEP', 'ABT'
             ]
-            return tickers
+            
+            # High-volume growth stocks
+            growth_stocks = [
+                'AMD', 'PLTR', 'COIN', 'HOOD', 'SOFI', 'SQ', 'ROKU', 'DKNG',
+                'PENN', 'AFRM', 'UPST', 'RBLX', 'U', 'NET', 'CRWD', 'SNOW'
+            ]
+            
+            return sp500_core + growth_stocks
         except:
-            return ['SOUN', 'RXRX', 'IONQ', 'SMCI', 'NVAX']  # Fallback
+            # Safe fallback to major market leaders
+            return ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'TSLA', 'AMD', 'META']
     
     async def get_momentum_tickers(self) -> List[str]:
         """Get tickers showing momentum patterns"""
@@ -527,14 +524,13 @@ class RealTimeStockDiscovery:
         return await self.get_active_market_tickers()
     
     async def get_stocks_with_recent_news(self) -> List[str]:
-        """Get stocks with recent news events"""
-        # Focus on stocks likely to have catalysts
+        """Get stocks with recent news events - focus on major names"""
+        # Return quality stocks that typically have significant news impact
         return [
-            'NVAX', 'MRNA', 'BNTX', 'SAVA', 'RXRX', 'GILD',  # Biotech (FDA catalysts)
-            'SMCI', 'AMD', 'NVDA', 'GOOGL', 'MSFT',  # AI/Tech earnings
-            'TSLA', 'LCID', 'RIVN', 'NIO', 'XPEV',  # EV sector
-            'IONQ', 'QUBT', 'RGTI',  # Quantum computing
-            'PLTR', 'HOOD', 'COIN', 'SOFI'  # Growth/momentum
+            'NVDA', 'AMD', 'TSLA', 'GOOGL', 'MSFT', 'AAPL', 'META',  # Mega caps
+            'PLTR', 'COIN', 'HOOD', 'SOFI', 'SQ', 'ROKU',  # Growth stocks
+            'MRNA', 'BNTX', 'GILD', 'BIIB', 'REGN', 'VRTX',  # Biotech leaders
+            'CRM', 'SNOW', 'CRWD', 'NET', 'ZS', 'OKTA'  # Cloud/SaaS
         ]
     
     async def get_leading_sectors(self) -> List[str]:

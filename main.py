@@ -1039,44 +1039,15 @@ def run_safety_check():
         return f"❌ Safety check failed: {str(e)}"
 
 def run_stock_discovery():
+    """Run DYNAMIC alpha discovery - NO HARDCODED STOCKS OR MOCK DATA"""
     try:
         import asyncio
-        from alpha_engine_enhanced import EnhancedAlphaEngine
+        from dynamic_alpha_discovery import discover_dynamic_alpha_opportunities
         
-        async def discover():
-            engine = EnhancedAlphaEngine()
-            candidates = await engine.discover_alpha_opportunities('swing')
-            
-            result = "🔍 ENHANCED ALPHA DISCOVERY ENGINE\n"
-            result += "=" * 45 + "\n"
-            result += "📊 Professional-grade institutional quality filtering\n"
-            result += "🎯 Focus: Quality opportunities, not meme stocks\n\n"
-            
-            if candidates:
-                result += f"✅ FOUND {len(candidates)} HIGH-QUALITY ALPHA OPPORTUNITIES:\n\n"
-                for i, candidate in enumerate(candidates[:5], 1):
-                    result += f"{i}. {candidate.ticker} - {candidate.company_name}\n"
-                    result += f"   💰 Price: ${candidate.current_price:.2f}\n"
-                    result += f"   📈 Change: {candidate.price_change_1d:+.1f}% today\n"
-                    result += f"   📊 Volume: {candidate.volume_spike:.1f}x normal\n"
-                    result += f"   🏢 Market Cap: ${candidate.market_cap/1e9:.1f}B\n"
-                    result += f"   🎯 Quality: {candidate.quality_score:.1f}/1.0\n"
-                    result += f"   ⚠️ Risk: {candidate.risk_score:.1f}/1.0\n"
-                    result += f"   ⭐ Confidence: {candidate.confidence_score:.0%}\n"
-                    result += f"   📝 Discovery: {candidate.discovery_reason}\n\n"
-            else:
-                result += "📊 No qualifying institutional-grade opportunities found\n"
-                result += "💡 Current market conditions may not meet quality filters\n"
-                result += "🔄 Enhanced engine filters out dilution stocks like AMC/GME\n"
-                result += "⏰ Try again during high-volume market periods\n"
-            
-            return result
-        
-        # Run async function
-        return asyncio.run(discover())
+        return asyncio.run(discover_dynamic_alpha_opportunities())
     
     except Exception as e:
-        return f"❌ Enhanced alpha discovery failed: {str(e)}"
+        return f"❌ Dynamic alpha discovery failed: {str(e)}"
 
 def run_catalyst_discovery():
     """Run REAL catalyst discovery engine with verified data sources"""

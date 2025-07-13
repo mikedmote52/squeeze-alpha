@@ -178,47 +178,32 @@ class StockScreener:
     def _get_stock_universe(self) -> List[str]:
         """Get stock universe for explosive opportunities screening"""
         try:
-            # EXPLOSIVE SMALL-CAP UNIVERSE - High growth potential stocks
-            explosive_universe = [
-                # Quantum Computing & Future Tech
-                'QUBT', 'IONQ', 'RGTI', 'QBTS', 'IBM',
+            # QUALITY GROWTH UNIVERSE - Focus on liquid, institutional-grade stocks
+            quality_universe = [
+                # Tech Leaders - AI & Cloud
+                'NVDA', 'AMD', 'GOOGL', 'MSFT', 'META', 'AAPL', 'AMZN', 'TSLA',
                 
-                # AI & Machine Learning Small Caps
-                'RXRX', 'SOUN', 'BBAI', 'AI', 'SMCI', 'AGIX',
+                # High-growth SaaS & Cloud
+                'CRM', 'SNOW', 'CRWD', 'ZS', 'OKTA', 'NET', 'DDOG', 'TWLO',
                 
-                # Semiconductors & Hardware
-                'WOLF', 'FORM', 'CRUS', 'MPWR', 'SWKS', 'QRVO',
+                # Semiconductors
+                'AVGO', 'QCOM', 'AMAT', 'LRCX', 'KLAC', 'ADI', 'TXN',
                 
-                # Biotech & Pharmaceuticals
-                'SAVA', 'BIIB', 'GILD', 'MRNA', 'BNTX', 'NVAX',
+                # Biotech Leaders
+                'GILD', 'BIIB', 'REGN', 'VRTX', 'MRNA', 'BNTX', 'AMGN',
                 
-                # EV & Clean Energy
-                'SPCE', 'LCID', 'RIVN', 'QS', 'BLNK', 'CHPT',
+                # Fintech & Payments
+                'V', 'MA', 'PYPL', 'SQ', 'COIN', 'HOOD', 'SOFI', 'AFRM',
                 
-                # Space & Defense
-                'RKLB', 'ASTS', 'PL', 'LMT', 'RTX',
+                # Growth Stocks
+                'PLTR', 'ROKU', 'DKNG', 'RBLX', 'U', 'SHOP', 'UPST',
                 
-                # Fintech Disruptors
-                'SOFI', 'HOOD', 'COIN', 'SQ', 'AFRM', 'UPST',
-                
-                # Cybersecurity Small Caps
-                'CRWD', 'ZS', 'OKTA', 'NET', 'DDOG',
-                
-                # Gaming & Metaverse
-                'RBLX', 'U', 'MTTR', 'TTWO', 'EA',
-                
-                # Meme/Momentum Stocks
-                'AMC', 'GME', 'BBBY', 'CLOV', 'WISH',
-                
-                # Cannabis & Psychedelics
-                'CGC', 'TLRY', 'SNDL', 'ACB', 'CRON',
-                
-                # Include some large caps for comparison
-                'NVDA', 'TSLA', 'META', 'GOOGL', 'AAPL', 'MSFT'
+                # Traditional Quality
+                'JPM', 'BAC', 'WFC', 'GS', 'JNJ', 'PFE', 'UNH', 'HD', 'WMT'
             ]
             
-            self.logger.info(f"Loaded explosive universe with {len(explosive_universe)} candidates")
-            return explosive_universe
+            self.logger.info(f"Loaded quality universe with {len(quality_universe)} candidates")
+            return quality_universe
             
         except Exception as e:
             self.logger.error(f"Error getting stock universe: {e}")
