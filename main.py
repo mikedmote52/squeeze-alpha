@@ -1079,18 +1079,14 @@ def run_stock_discovery():
         return f"❌ Enhanced alpha discovery failed: {str(e)}"
 
 def run_catalyst_discovery():
-    """Run catalyst discovery engine for binary events"""
+    """Run REAL catalyst discovery engine with verified data sources"""
     try:
         import asyncio
-        from catalyst_discovery_engine import CatalystDiscoveryEngine
+        from catalyst_discovery_engine import discover_real_catalyst_opportunities
         
-        async def discover():
-            engine = CatalystDiscoveryEngine()
-            return await engine.discover_catalyst_opportunities_for_main()
-        
-        return asyncio.run(discover())
+        return asyncio.run(discover_real_catalyst_opportunities())
     except Exception as e:
-        return f"❌ Catalyst discovery failed: {str(e)}"
+        return f"❌ Real catalyst discovery failed: {str(e)}"
 
 def run_system_performance():
     """Run system performance comparison and tracking"""
