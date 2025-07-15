@@ -16,6 +16,9 @@ import os
 # Add core modules to path
 sys.path.append('./core')
 
+# Backend URL configuration
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
+
 st.set_page_config(
     page_title="Opportunity Discovery", 
     page_icon="🔍", 
@@ -25,7 +28,7 @@ st.set_page_config(
 def display_api_cost_tracker():
     """Display API cost tracking at the top of pages"""
     try:
-        response = requests.get("http://localhost:8000/api/costs/summary", timeout=5)
+        response = requests.get(f"{BACKEND_URL}/api/costs/summary", timeout=5)
         if response.status_code == 200:
             cost_data = response.json()
             
@@ -58,12 +61,13 @@ def load_opportunities():
     try:
         # Call the real discovery endpoints with longer timeout for complex analysis
         with st.spinner("🔍 Scanning catalyst opportunities (FDA/SEC data)..."):
-            catalyst_response = requests.get("http://localhost:8000/api/catalyst-discovery", timeout=45)
+            catalyst_response = requests.get(f"{BACKEND_URL}/api/catalyst-discovery", timeout=45)
         
         with st.spinner("🚀 Scanning alpha opportunities (explosive stocks)..."):
-            alpha_response = requests.get("http://localhost:8000/api/alpha-discovery", timeout=30)
+            alpha_response = requests.get(f"{BACKEND_URL}/api/alpha-discovery", timeout=30)
         
         opportunities = []
+        explanations = []
         
         # Add catalyst opportunities
         if catalyst_response.status_code == 200:
@@ -82,6 +86,10 @@ def load_opportunities():
                     'reasoning': catalyst.get('aiReasoning', ''),
                     'data': catalyst
                 })
+            
+            # Store explanation if no catalyst opportunities found
+            if not catalyst_data.get('catalysts') and catalyst_data.get('explanation'):
+                explanations.append(catalyst_data['explanation'])
         
         # Add alpha opportunities  
         if alpha_response.status_code == 200:
@@ -100,18 +108,22 @@ def load_opportunities():
                     'sector': alpha.get('sector', 'Unknown'),
                     'data': alpha
                 })
+            
+            # Store explanation if no alpha opportunities found
+            if not alpha_data.get('opportunities') and alpha_data.get('explanation'):
+                explanations.append(alpha_data['explanation'])
         
-        return opportunities
+        return opportunities, explanations
         
     except requests.exceptions.Timeout:
         st.error("⏱️ **Discovery Timeout** - The opportunity engines are working hard to find explosive stocks. Please try refreshing in a moment.")
-        return []
+        return [], []
     except requests.exceptions.ConnectionError:
         st.error("🔌 **Backend Connection Error** - Make sure the backend server is running on port 8000.")
-        return []
+        return [], []
     except Exception as e:
         st.error(f"❌ **Discovery Error**: {str(e)}")
-        return []
+        return [], []
 
 def run_ai_analysis(ticker):
     """Run enhanced AI analysis for a specific ticker using multiple data sources"""
@@ -954,18 +966,38 @@ def main():
     
     # Load opportunities
     with st.spinner("🔍 Discovering opportunities from real market data..."):
-        opportunities = load_opportunities()
+        opportunities, explanations = load_opportunities()
     
     if not opportunities:
         st.warning("⚠️ No opportunities found at this time.")
-        st.info("This is normal and shows the system is working correctly:")
-        st.markdown("""
-        - ✅ Real discovery engines scanning FDA/SEC data
-        - ✅ No hardcoded or mock opportunities 
-        - ✅ Strict quality filters applied
         
-        Try again during market hours or after market events.
-        """)
+        # Show detailed AI explanations if available
+        if explanations:
+            st.info("🤖 **AI Analysis of Current Market Conditions:**")
+            for explanation in explanations:
+                if explanation:
+                    st.markdown(f"**{explanation.get('discovery_type', 'Discovery').title()} Analysis:**")
+                    st.write(explanation.get('reasoning', 'No detailed reasoning available'))
+                    
+                    # Show search details
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Candidates Found", explanation.get('candidates_found', 0))
+                    with col2:
+                        st.metric("Market Status", explanation.get('market_status', 'Unknown'))
+                    with col3:
+                        st.metric("Search Time", explanation.get('search_time', 'Unknown'))
+                    
+                    st.markdown("---")
+        else:
+            st.info("This is normal and shows the system is working correctly:")
+            st.markdown("""
+            - ✅ Real discovery engines scanning FDA/SEC data
+            - ✅ No hardcoded or mock opportunities 
+            - ✅ Strict quality filters applied
+            
+            Try again during market hours or after market events.
+            """)
         return
     
     # Summary metrics

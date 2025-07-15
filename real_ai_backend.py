@@ -1075,6 +1075,82 @@ async def execute_real_trade(order_data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Trade execution error: {str(e)}")
 
+async def get_discovery_explanation(discovery_type: str, raw_data: list):
+    """Get detailed AI explanation for why no opportunities were found"""
+    try:
+        # Get market conditions
+        market_status = get_market_status()
+        current_time = get_pacific_time()
+        
+        # Count filtered out opportunities
+        filtered_count = len(raw_data) if raw_data else 0
+        
+        # Get AI analysis using OpenRouter
+        prompt = f"""
+        You are an expert market analyst. Analyze why no {discovery_type} opportunities were found.
+        
+        Current Market Context:
+        - Time: {current_time}
+        - Market Status: {market_status}
+        - Raw candidates found: {filtered_count}
+        - Discovery type: {discovery_type}
+        
+        Provide a detailed explanation including:
+        1. What specific searches were performed
+        2. What filtering criteria were applied
+        3. Why potential opportunities were rejected
+        4. Current market conditions affecting discovery
+        5. When to check again for better opportunities
+        
+        Be specific and detailed - no generic responses.
+        """
+        
+        # Call OpenRouter API
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "HTTP-Referer": "https://github.com/your-repo/ai-trading-system",
+                "X-Title": "AI Trading System - Discovery Analysis"
+            },
+            json={
+                "model": "anthropic/claude-3.5-sonnet",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 1000
+            },
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            ai_response = response.json()
+            explanation = ai_response['choices'][0]['message']['content']
+            
+            return {
+                "reasoning": explanation,
+                "market_status": market_status,
+                "search_time": current_time,
+                "candidates_found": filtered_count,
+                "discovery_type": discovery_type
+            }
+        else:
+            return {
+                "reasoning": f"AI analysis unavailable. Searched {filtered_count} candidates at {current_time}. Market: {market_status}",
+                "market_status": market_status,
+                "search_time": current_time,
+                "candidates_found": filtered_count,
+                "discovery_type": discovery_type
+            }
+            
+    except Exception as e:
+        current_time = get_pacific_time()
+        return {
+            "reasoning": f"Analysis error: {str(e)}. No detailed explanation available.",
+            "market_status": "Unknown",
+            "search_time": current_time,
+            "candidates_found": 0,
+            "discovery_type": discovery_type
+        }
+
 @app.get("/api/catalyst-discovery")
 async def get_catalyst_discovery():
     """Get EXPLOSIVE catalyst discovery opportunities - NO LARGE CAPS"""
@@ -1110,12 +1186,18 @@ async def get_catalyst_discovery():
                 "lastUpdated": datetime.now().isoformat()
             })
         
+        # Add detailed explanation if no opportunities found
+        explanation = None
+        if not catalysts:
+            explanation = await get_discovery_explanation("catalyst", explosive_opportunities)
+        
         return {
             "catalysts": catalysts,
             "lastUpdated": datetime.now().isoformat(),
             "source": "Explosive Catalyst Discovery Engine - NO LARGE-CAPS",
             "count": len(catalysts),
-            "message": f"Found {len(catalysts)} explosive catalyst opportunities (AVOIDED: AAPL, TSLA, NVDA, etc.)"
+            "message": f"Found {len(catalysts)} explosive catalyst opportunities (AVOIDED: AAPL, TSLA, NVDA, etc.)",
+            "explanation": explanation
         }
         
     except Exception as e:
@@ -1210,12 +1292,18 @@ async def get_alpha_discovery():
                 "marketCap": getattr(candidate, 'market_cap', 0)
             })
         
+        # Add detailed explanation if no opportunities found
+        explanation = None
+        if not opportunities:
+            explanation = await get_discovery_explanation("alpha", explosive_candidates)
+        
         return {
             "opportunities": opportunities,
             "lastUpdated": datetime.now().isoformat(),
             "source": "Explosive Opportunity Discovery Engine - 100%+ Potential Scanner", 
             "count": len(opportunities),
-            "message": f"Scanning for explosive opportunities like VIGL (+324%), CRWV (+171%) - Found {len(opportunities)} candidates"
+            "message": f"Scanning for explosive opportunities like VIGL (+324%), CRWV (+171%) - Found {len(opportunities)} candidates",
+            "explanation": explanation
         }
         
     except Exception as e:
