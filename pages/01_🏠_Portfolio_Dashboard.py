@@ -15,6 +15,13 @@ import os
 
 # Add core modules to path
 sys.path.append('./core')
+sys.path.append('..')
+
+# Import the new integrated tiles
+from integrated_portfolio_tiles import display_integrated_portfolio_tiles
+
+# Backend URL configuration - connect to your real backend service
+BACKEND_URL = os.getenv('BACKEND_URL', 'https://squeeze-alpha.onrender.com')
 
 st.set_page_config(
     page_title="Portfolio Dashboard", 
@@ -25,8 +32,8 @@ st.set_page_config(
 def load_portfolio_data():
     """Load real portfolio data from backend"""
     try:
-        positions_response = requests.get("http://localhost:8000/api/portfolio/positions", timeout=10)
-        performance_response = requests.get("http://localhost:8000/api/portfolio/performance", timeout=10)
+        positions_response = requests.get(f"{BACKEND_URL}/api/portfolio/positions", timeout=10)
+        performance_response = requests.get(f"{BACKEND_URL}/api/portfolio/performance", timeout=10)
         
         if positions_response.status_code == 200 and performance_response.status_code == 200:
             positions_data = positions_response.json()
@@ -116,168 +123,11 @@ def create_performance_chart(positions):
     return fig
 
 def display_position_details(positions):
-    """Display positions as clickable iPhone-style tiles with AI analysis"""
-    st.subheader("📊 Position Details")
-    st.markdown("*Click or hover over tiles for detailed AI analysis*")
-    
-    # Sort positions by market value (largest first)
-    sorted_positions = sorted(positions, key=lambda x: x['market_value'], reverse=True)
-    
-    for pos in sorted_positions:
-        symbol = pos['symbol']
-        pl_pct = pos['unrealized_plpc']
-        
-        # Determine tile health color
-        if pl_pct >= 15:
-            tile_color = "#00ff00"  # Bright green
-            health_emoji = "🟢"
-            health_status = "Excellent"
-        elif pl_pct >= 5:
-            tile_color = "#90EE90"  # Light green
-            health_emoji = "🟢"
-            health_status = "Good"
-        elif pl_pct >= 0:
-            tile_color = "#FFFF99"  # Light yellow
-            health_emoji = "🟡"
-            health_status = "Neutral"
-        elif pl_pct >= -5:
-            tile_color = "#FFA500"  # Orange
-            health_emoji = "🟠"
-            health_status = "Caution"
-        elif pl_pct >= -15:
-            tile_color = "#FF6347"  # Red
-            health_emoji = "🔴"
-            health_status = "Poor"
-        else:
-            tile_color = "#000000"  # Black - sell now
-            health_emoji = "⚫"
-            health_status = "SELL NOW"
-        
-        # Create iPhone-style tile
-        with st.container():
-            # Custom CSS for iPhone app tile styling
-            st.markdown(f"""
-            <div style="
-                border: 3px solid {tile_color}; 
-                border-radius: 15px; 
-                padding: 20px; 
-                margin: 10px 0;
-                background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(0,0,0,0.1));
-                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-                transition: transform 0.2s;
-                cursor: pointer;
-            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h2 style="color: {tile_color}; margin: 0; font-size: 24px;">{symbol}</h2>
-                    <div style="display: flex; align-items: center;">
-                        <span style="color: {tile_color}; font-weight: bold; margin-right: 10px;">{health_emoji} {health_status}</span>
-                        <span style="color: {tile_color}; font-size: 20px; font-weight: bold;">{pl_pct:+.2f}%</span>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Tile details in columns
-            col1, col2, col3, col4, col5, col6 = st.columns(6)
-            
-            with col1:
-                st.metric("Quantity", f"{pos['qty']:.0f}")
-            
-            with col2:
-                st.metric("Avg Cost", f"${pos['avg_entry_price']:.2f}")
-            
-            with col3:
-                st.metric("Current Price", f"${pos['current_price']:.2f}")
-            
-            with col4:
-                st.metric("Market Value", f"${pos['market_value']:.2f}")
-            
-            with col5:
-                st.metric("P&L Amount", f"${pos['unrealized_pl']:+.2f}")
-            
-            with col6:
-                # Get AI recommendation with purchase price
-                try:
-                    # Pass purchase price to AI analysis for proper sell signals
-                    purchase_price = pos['avg_entry_price']
-                    ai_response = requests.get(
-                        f"http://localhost:8000/api/ai-analysis/full/{symbol}",
-                        params={"purchase_price": purchase_price},
-                        timeout=3
-                    )
-                    if ai_response.status_code == 200:
-                        ai_data = ai_response.json()
-                        recommendation = ai_data.get('recommendation', 'Analyzing...').split(' - ')[0]
-                    else:
-                        recommendation = "Loading..."
-                except:
-                    recommendation = "N/A"
-                
-                st.metric("AI Rating", recommendation)
-            
-            # Expandable details on click/hover
-            with st.expander(f"🔍 Detailed Analysis - {symbol}", expanded=False):
-                detail_col1, detail_col2 = st.columns(2)
-                
-                with detail_col1:
-                    st.markdown("**📊 Position Details:**")
-                    st.write(f"• **Symbol:** {symbol}")
-                    st.write(f"• **Shares:** {pos['qty']:.0f}")
-                    st.write(f"• **Entry Price:** ${pos['avg_entry_price']:.2f}")
-                    st.write(f"• **Current Price:** ${pos['current_price']:.2f}")
-                    st.write(f"• **Market Value:** ${pos['market_value']:,.2f}")
-                    st.write(f"• **P&L:** ${pos['unrealized_pl']:+,.2f} ({pl_pct:+.2f}%)")
-                
-                with detail_col2:
-                    st.markdown("**🤖 AI Analysis:**")
-                    
-                    # Get full AI analysis with purchase price
-                    try:
-                        purchase_price = pos['avg_entry_price']
-                        ai_response = requests.get(
-                            f"http://localhost:8000/api/ai-analysis/full/{symbol}",
-                            params={"purchase_price": purchase_price},
-                            timeout=5
-                        )
-                        if ai_response.status_code == 200:
-                            ai_data = ai_response.json()
-                            
-                            st.write(f"**Recommendation:** {ai_data.get('recommendation', 'Analyzing...')}")
-                            price_target = ai_data.get('price_target', pos['current_price'])
-                            st.write(f"**Price Target:** ${price_target:.2f}")
-                            
-                            # Show warning if target is below purchase price
-                            if price_target < purchase_price:
-                                loss_pct = ((price_target - purchase_price) / purchase_price) * 100
-                                st.error(f"⚠️ **Warning:** Target price is {loss_pct:.1f}% below your purchase price!")
-                            
-                            # Show AI conversation
-                            if ai_data.get('conversation'):
-                                st.markdown("**Live AI Discussion:**")
-                                for msg in ai_data['conversation'][-2:]:  # Show last 2 messages
-                                    st.write(f"• **{msg.get('model', 'AI')}:** {msg.get('message', '')}")
-                        else:
-                            st.write("AI analysis in progress...")
-                    except Exception as e:
-                        st.write(f"AI analysis unavailable: {str(e)}")
-                
-                # Quick action buttons
-                st.markdown("**⚡ Quick Actions:**")
-                action_col1, action_col2, action_col3 = st.columns(3)
-                
-                with action_col1:
-                    if st.button(f"🟢 Buy More", key=f"buy_more_{symbol}"):
-                        st.success(f"Buy order interface for {symbol} would open here")
-                
-                with action_col2:
-                    if st.button(f"🔴 Sell All", key=f"sell_all_{symbol}"):
-                        st.warning(f"Sell order for {symbol} would be executed")
-                
-                with action_col3:
-                    if st.button(f"🎯 Sell Half", key=f"sell_half_{symbol}"):
-                        st.info(f"Partial sell order for {symbol} would be executed")
-            
-            st.divider()
+    """Display positions using new integrated tiles with all data inside"""
+    # Use the new integrated tiles instead of old display
+    portfolio_data = {'positions': positions}
+    display_integrated_portfolio_tiles(portfolio_data)
+    return
 
 def display_portfolio_optimization_summary(positions):
     """Display AI-powered portfolio optimization recommendations with one-click execution"""
@@ -287,76 +137,20 @@ def display_portfolio_optimization_summary(positions):
     # Get portfolio optimization analysis
     try:
         optimization_response = requests.post(
-            "http://localhost:8000/api/portfolio/optimization-analysis",
+            f"{BACKEND_URL}/api/portfolio/optimization-analysis",
             json={'positions': positions},
             timeout=10
         )
         
         if optimization_response.status_code == 200:
             optimization_data = optimization_response.json()
+            st.success("✅ Portfolio optimization analysis complete!")
+            # Display optimization results here
         else:
-            # Fallback to local analysis if backend endpoint doesn't exist
-            optimization_data = generate_local_optimization_analysis(positions)
-    except:
-        # Fallback to local analysis
-        optimization_data = generate_local_optimization_analysis(positions)
-    
-    # Display optimization summary
-    opt_col1, opt_col2 = st.columns([2, 1])
-    
-    with opt_col1:
-        st.markdown("### 📊 Recommended Changes")
-        
-        recommendations = optimization_data.get('recommendations', [])
-        for i, rec in enumerate(recommendations[:5], 1):  # Show top 5 recommendations
-            action_type = rec.get('action', 'HOLD')
-            symbol = rec.get('symbol', 'N/A')
-            reasoning = rec.get('reasoning', 'No reasoning provided')
+            st.warning("⚠️ Unable to load optimization analysis")
             
-            # Color code by action type
-            if action_type == 'SELL':
-                action_color = "🔴"
-            elif action_type == 'BUY':
-                action_color = "🟢"
-            elif action_type == 'REDUCE':
-                action_color = "🟡"
-            else:
-                action_color = "🔵"
-            
-            st.markdown(f"""
-            **{i}. {action_color} {action_type} {symbol}**
-            *{reasoning}*
-            """)
-        
-        # Expected portfolio improvement
-        expected_gain = optimization_data.get('expected_improvement', 0)
-        if expected_gain > 0:
-            st.success(f"🎯 **Expected Improvement:** +{expected_gain:.1f}% portfolio performance")
-        elif expected_gain < 0:
-            st.warning(f"⚠️ **Risk Reduction:** {expected_gain:.1f}% volatility reduction")
-        else:
-            st.info("📊 **Portfolio Status:** Currently well-optimized")
-    
-    with opt_col2:
-        st.markdown("### ⚡ Quick Execute")
-        
-        # One-click optimization button
-        if st.button("🚀 Execute All Optimizations", type="primary", key="execute_optimization"):
-            execute_portfolio_optimization(optimization_data)
-        
-        # Risk level indicator
-        risk_level = optimization_data.get('risk_level', 'MEDIUM')
-        if risk_level == 'HIGH':
-            st.error("⚠️ High Risk Changes")
-        elif risk_level == 'LOW':
-            st.success("✅ Low Risk Changes")
-        else:
-            st.warning("⚖️ Medium Risk Changes")
-        
-        # Show estimated costs
-        estimated_trades = len(optimization_data.get('recommendations', []))
-        estimated_fees = estimated_trades * 0.00  # Alpaca is commission-free
-        st.info(f"📋 **{estimated_trades} trades** • ${estimated_fees:.2f} fees")
+    except Exception as e:
+        st.error(f"❌ Error loading optimization: {e}")
 
 def generate_local_optimization_analysis(positions):
     """Generate portfolio optimization analysis using local AI logic"""
@@ -472,7 +266,7 @@ def execute_portfolio_optimization(optimization_data):
             
             # Call backend to execute trade
             trade_response = requests.post(
-                "http://localhost:8000/api/trades/execute-optimization",
+                f"{BACKEND_URL}/api/trades/execute-optimization",
                 json=trade_data,
                 timeout=10
             )
@@ -502,6 +296,85 @@ def execute_portfolio_optimization(optimization_data):
                 st.write(f"• **{trade['action']} {trade['symbol']}** - Order ID: {trade['order_id']}")
     else:
         st.warning("⚠️ No trades were executed. Please check your account settings or try again.")
+
+def display_portfolio_optimization_summary(positions):
+    """Display AI-powered portfolio optimization recommendations with one-click execution"""
+    st.subheader("🧠 AI Portfolio Optimization")
+    st.markdown("*AI analysis of your portfolio with recommended optimizations*")
+    
+    # Get portfolio optimization analysis
+    try:
+        optimization_response = requests.post(
+            f"{BACKEND_URL}/api/portfolio/optimization-analysis",
+            json={'positions': positions},
+            timeout=10
+        )
+        
+        if optimization_response.status_code == 200:
+            optimization_data = optimization_response.json()
+        else:
+            # Fallback to local analysis if backend endpoint doesn't exist
+            optimization_data = generate_local_optimization_analysis(positions)
+    except:
+        # Fallback to local analysis
+        optimization_data = generate_local_optimization_analysis(positions)
+    
+    # Display optimization summary
+    opt_col1, opt_col2 = st.columns([2, 1])
+    
+    with opt_col1:
+        st.markdown("### 📊 Recommended Changes")
+        
+        recommendations = optimization_data.get('recommendations', [])
+        for i, rec in enumerate(recommendations[:5], 1):  # Show top 5 recommendations
+            action_type = rec.get('action', 'HOLD')
+            symbol = rec.get('symbol', 'N/A')
+            reasoning = rec.get('reasoning', 'No reasoning provided')
+            
+            # Color code by action type
+            if action_type == 'SELL':
+                action_color = "🔴"
+            elif action_type == 'BUY':
+                action_color = "🟢"
+            elif action_type == 'REDUCE':
+                action_color = "🟡"
+            else:
+                action_color = "🔵"
+            
+            st.markdown(f"""
+            **{i}. {action_color} {action_type} {symbol}**
+            *{reasoning}*
+            """)
+        
+        # Expected portfolio improvement
+        expected_gain = optimization_data.get('expected_improvement', 0)
+        if expected_gain > 0:
+            st.success(f"🎯 **Expected Improvement:** +{expected_gain:.1f}% portfolio performance")
+        elif expected_gain < 0:
+            st.warning(f"⚠️ **Risk Reduction:** {expected_gain:.1f}% volatility reduction")
+        else:
+            st.info("📊 **Portfolio Status:** Currently well-optimized")
+    
+    with opt_col2:
+        st.markdown("### ⚡ Quick Execute")
+        
+        # One-click optimization button
+        if st.button("🚀 Execute All Optimizations", type="primary", key="execute_optimization"):
+            execute_portfolio_optimization(optimization_data)
+        
+        # Risk level indicator
+        risk_level = optimization_data.get('risk_level', 'MEDIUM')
+        if risk_level == 'HIGH':
+            st.error("⚠️ High Risk Changes")
+        elif risk_level == 'LOW':
+            st.success("✅ Low Risk Changes")
+        else:
+            st.warning("⚖️ Medium Risk Changes")
+        
+        # Show estimated costs
+        estimated_trades = len(optimization_data.get('recommendations', []))
+        estimated_fees = estimated_trades * 0.00  # Alpaca is commission-free
+        st.info(f"📋 **{estimated_trades} trades** • ${estimated_fees:.2f} fees")
 
 def main():
     """Main portfolio dashboard"""

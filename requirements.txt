@@ -7,3 +7,6 @@ numpy==1.24.3
 fastapi==0.104.1
 uvicorn==0.24.0
 asyncio==3.4.3
+apscheduler==3.10.4
+pytz==2023.3
+yfinance==0.2.18

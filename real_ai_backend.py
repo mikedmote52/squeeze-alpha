@@ -9,6 +9,10 @@ COMPLETELY REAL Backend - NO MOCK DATA ANYWHERE
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+import subprocess
+import threading
 import os
 import requests
 from datetime import datetime
@@ -18,6 +22,9 @@ import logging
 import sys
 import re
 from dotenv import load_dotenv
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+import pytz
 
 # Import AI analysis cache
 sys.path.append('./core')
@@ -25,6 +32,14 @@ from ai_analysis_cache import ai_cache
 
 # Load environment variables
 load_dotenv()
+
+# API Keys - Set these for deployment
+ALPACA_API_KEY = os.getenv("ALPACA_API_KEY", "your_alpaca_key_here")
+ALPACA_SECRET_KEY = os.getenv("ALPACA_SECRET_KEY", "your_alpaca_secret_here") 
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "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")
+ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY", "IN84O862OXIYYX8B")
+FMP_API_KEY = os.getenv("FMP_API_KEY", "CA25ofSLfa1mBftG4L4oFQvKUwtlhRfU")
+SLACK_WEBHOOK = os.getenv("SLACK_WEBHOOK", "https://hooks.slack.com/services/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")
 
 # Add core directory to path for memory engine
 sys.path.append('./core')
@@ -34,7 +49,9 @@ from portfolio_memory_engine import (
     save_daily_portfolio_snapshot,
     challenge_portfolio_thesis,
     get_next_portfolio_moves,
-    get_memory_summary
+    get_memory_summary,
+    ThesisSnapshotSystem,
+    RecommendationTracker
 )
 
 # Import new enhanced systems
@@ -50,22 +67,158 @@ from ai_baseline_cache_system import ai_baseline_cache, get_stock_baseline, crea
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Initialize enhanced learning systems
+scheduler = None
+thesis_system = ThesisSnapshotSystem()
+tracker = RecommendationTracker()
+
 app = FastAPI(title="Real Trading API - ZERO MOCK DATA", version="1.0.0")
 
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],  # Allow all origins for deployment
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# REAL API Keys - NO DEFAULTS
-ALPACA_API_KEY = os.getenv('ALPACA_API_KEY')
-ALPACA_SECRET_KEY = os.getenv('ALPACA_SECRET_KEY')
+def start_streamlit():
+    """Start Streamlit app in background"""
+    try:
+        subprocess.run(["streamlit", "run", "streamlit_app.py", "--server.port", "8501", "--server.address", "0.0.0.0"], 
+                      check=True)
+    except Exception as e:
+        logger.error(f"Failed to start Streamlit: {e}")
+
+@app.on_event("startup")
+async def startup_background_tasks():
+    """Start smart background tasks"""
+    global scheduler
+    
+    # Start Streamlit in background thread
+    streamlit_thread = threading.Thread(target=start_streamlit, daemon=True)
+    streamlit_thread.start()
+    
+    scheduler = AsyncIOScheduler(timezone=pytz.timezone('America/Los_Angeles'))
+    
+    # Thesis snapshots - 3 times per day
+    scheduler.add_job(
+        func=take_scheduled_thesis_snapshot,
+        trigger=CronTrigger(hour='9', minute='30', day_of_week='0-4'),  # 9:30 AM PT
+        id='morning_snapshot',
+        replace_existing=True
+    )
+    
+    scheduler.add_job(
+        func=take_scheduled_thesis_snapshot,
+        trigger=CronTrigger(hour='12', minute='0', day_of_week='0-4'),  # 12:00 PM PT
+        id='midday_snapshot',
+        replace_existing=True
+    )
+    
+    scheduler.add_job(
+        func=take_scheduled_thesis_snapshot,
+        trigger=CronTrigger(hour='16', minute='0', day_of_week='0-4'),  # 4:00 PM PT
+        id='close_snapshot',
+        replace_existing=True
+    )
+    
+    # Morning learning review - 6:00 AM PT
+    scheduler.add_job(
+        func=run_morning_learning_review,
+        trigger=CronTrigger(hour='6', minute='0', day_of_week='0-4'),
+        id='morning_review',
+        replace_existing=True
+    )
+    
+    scheduler.start()
+    logger.info("🚀 Smart background system started - thesis snapshots + learning")
+
+# Add root endpoint for deployment
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {"message": "Trading System Backend - API is running", "status": "healthy"}
+
+@app.on_event("shutdown")
+async def shutdown_background_tasks():
+    global scheduler
+    if scheduler:
+        scheduler.shutdown()
+
+async def take_scheduled_thesis_snapshot():
+    """Take thesis snapshot at scheduled times"""
+    try:
+        result = await thesis_system.take_scheduled_snapshot()
+        logger.info(f"📸 Snapshot result: {result}")
+        return result
+    except Exception as e:
+        logger.error(f"❌ Snapshot failed: {e}")
+
+async def run_morning_learning_review():
+    """Morning review with learning insights"""
+    try:
+        # Update performance
+        tracker.update_all_performance()
+        
+        # Get summaries
+        performance_summary = tracker.get_recent_performance_summary()
+        learning_summary = thesis_system.get_learning_summary()
+        
+        # Send review
+        message = f"""🌅 **MORNING LEARNING REVIEW**
+
+**Performance (7 days):**
+• Win Rate: {performance_summary['win_rate']:.1f}%
+• Recent Winners: {', '.join(performance_summary['recent_winners']) if performance_summary['recent_winners'] else 'None'}
+• Recent Losers: {', '.join(performance_summary['recent_losers']) if performance_summary['recent_losers'] else 'None'}
+
+**Pattern Learning:**
+• Successful Patterns: {', '.join(learning_summary['successful_patterns']) if learning_summary['successful_patterns'] else 'Building data...'}
+• Best AI Model: {performance_summary['best_ai_model']}
+
+**Today's Strategy:** {'Continue winning approach' if performance_summary['win_rate'] > 50 else 'Adjust based on recent learnings'}
+
+Dashboard: {os.getenv('DEPLOY_URL', 'https://squeeze-alpha.onrender.com')}"""
+
+        await send_slack_notification(message)
+        logger.info("✅ Morning learning review sent")
+        
+    except Exception as e:
+        logger.error(f"❌ Morning review failed: {e}")
+
+async def send_slack_notification(message, urgent=False):
+    """Enhanced Slack notifications"""
+    
+    webhook_url = os.getenv('SLACK_WEBHOOK_URL')
+    if not webhook_url:
+        logger.warning("⚠️ No Slack webhook configured")
+        return
+    
+    try:
+        color = "danger" if urgent else "good"
+        
+        payload = {
+            "text": "🤖 AI Trading System" + (" - URGENT" if urgent else ""),
+            "attachments": [{
+                "color": color,
+                "text": message,
+                "ts": int(datetime.now().timestamp())
+            }]
+        }
+        
+        response = requests.post(webhook_url, json=payload, timeout=10)
+        if response.status_code == 200:
+            logger.info("✅ Slack notification sent")
+        else:
+            logger.error(f"❌ Slack failed: {response.status_code}")
+            
+    except Exception as e:
+        logger.error(f"❌ Slack error: {e}")
+
+# API keys are defined above with your actual keys
 ALPACA_BASE_URL = os.getenv('ALPACA_BASE_URL', 'https://paper-api.alpaca.markets')
-OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
 
 # OpenRouter key configured for enhanced analysis
 
@@ -2347,6 +2500,99 @@ async def clear_cache():
             "timestamp": datetime.now().isoformat()
         }
 
+# Enhanced Learning API Endpoints
+
+@app.post("/api/daily-recommendation")
+async def get_enhanced_daily_recommendation():
+    """Get daily recommendation with learning"""
+    try:
+        from enhanced_collaborative_ai import get_enhanced_daily_recommendation
+        
+        recommendation = await get_enhanced_daily_recommendation()
+        
+        return {
+            "status": "success",
+            "recommendation": recommendation,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Daily recommendation error: {e}")
+        return {"status": "error", "message": str(e)}
+
+@app.get("/api/learning-summary")
+async def get_learning_summary():
+    """Get current learning and performance summary"""
+    try:
+        performance_summary = tracker.get_recent_performance_summary()
+        learning_summary = thesis_system.get_learning_summary()
+        
+        return {
+            "status": "success",
+            "performance": performance_summary,
+            "learning": learning_summary,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Learning summary error: {e}")
+        return {"status": "error", "message": str(e)}
+
+@app.post("/api/manual-snapshot")
+async def trigger_manual_snapshot():
+    """Manually trigger thesis snapshot"""
+    try:
+        result = await thesis_system.take_scheduled_snapshot()
+        return {"status": "success", "result": result}
+    except Exception as e:
+        logger.error(f"Manual snapshot error: {e}")
+        return {"status": "error", "message": str(e)}
+
+@app.get("/api/position-analysis/{ticker}")
+async def get_enhanced_position_analysis(ticker: str):
+    """Get enhanced position analysis with learning"""
+    try:
+        from enhanced_collaborative_ai import analyze_position_with_learning
+        
+        # Get position data
+        positions_response = requests.get(
+            f"{ALPACA_BASE_URL}/v2/positions/{ticker}",
+            headers=get_alpaca_headers(),
+            timeout=10
+        )
+        
+        if positions_response.status_code == 200:
+            position_data = positions_response.json()
+            analysis = await analyze_position_with_learning(ticker, position_data)
+            
+            return {
+                "status": "success",
+                "ticker": ticker,
+                "analysis": analysis,
+                "timestamp": datetime.now().isoformat()
+            }
+        else:
+            return {"status": "error", "message": f"Position not found: {ticker}"}
+            
+    except Exception as e:
+        logger.error(f"Position analysis error: {e}")
+        return {"status": "error", "message": str(e)}
+
+@app.get("/api/market-sentiment")
+async def get_enhanced_market_sentiment():
+    """Get enhanced market sentiment with learning"""
+    try:
+        from enhanced_collaborative_ai import get_market_sentiment_with_learning
+        
+        sentiment = await get_market_sentiment_with_learning()
+        
+        return {
+            "status": "success",
+            "sentiment": sentiment,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Market sentiment error: {e}")
+        return {"status": "error", "message": str(e)}
+
 if __name__ == "__main__":
     import uvicorn
     print("🔥 Starting 100% REAL Backend - ZERO MOCK DATA")
@@ -2365,4 +2611,5 @@ if __name__ == "__main__":
     else:
         print("✅ All API keys configured - 100% real data mode")
     
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=False)

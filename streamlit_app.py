@@ -16,6 +16,8 @@ import sys
 import json
 import logging
 import requests
+from integrated_portfolio_tiles import display_integrated_portfolio_tiles
+from ai_analysis_page import display_ai_analysis_page
 
 # Add core modules to path
 sys.path.append('./core')
@@ -24,8 +26,8 @@ sys.path.append('./core')
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Backend URL configuration
-BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
+# Backend URL configuration - connect to your real backend service
+BACKEND_URL = os.getenv('BACKEND_URL', 'https://squeeze-alpha.onrender.com')
 logger.info(f"Using backend URL: {BACKEND_URL}")
 
 # Configure Streamlit page
@@ -247,25 +249,28 @@ def display_api_cost_tracker():
         st.warning(f"⚠️ Cost tracking unavailable: API connection issue")
 
 def display_portfolio_stock_tiles(portfolio_data):
-    """Display portfolio stocks as color-coded tiles with real-time AI analysis"""
-    if not portfolio_data or not portfolio_data.get('positions'):
-        st.info("📊 No portfolio positions to display")
-        return
-    
-    positions = portfolio_data['positions']
-    total_value = sum(pos['market_value'] for pos in positions)
-    
-    st.markdown("### 📊 Portfolio Holdings")
-    
-    # Create tiles for each position
-    for position in positions:
-        symbol = position['symbol']
-        pl_pct = position['unrealized_plpc']
-        market_value = position['market_value']
-        current_price = position['current_price']
+    """DEPRECATED - Use display_integrated_portfolio_tiles instead"""
+    # Redirect to new integrated tiles
+    display_integrated_portfolio_tiles(portfolio_data)
+    return
+
+def get_real_time_ai_analysis(symbol: str, position: dict) -> dict:
+    """Get real-time AI analysis with live model conversations"""
+    try:
+        # Show AI communication status
+        status_placeholder = st.empty()
+        status_placeholder.info("🤖 AI Models analyzing... Claude, ChatGPT, and Gemini are discussing...")
         
-        # Calculate portfolio weight
-        portfolio_weight = (market_value / total_value * 100) if total_value > 0 else 0
+        # Initialize with dynamic AI analysis (not boring cached baseline)
+        ai_analysis = {
+            'claude_score': 'Analyzing...',
+            'gpt_score': 'Analyzing...',
+            'projected_price': position['current_price'],
+            'conversation': [],
+            'actionable_recommendation': 'Gathering AI insights...',
+            'risk_analysis': 'Evaluating risk factors...',
+            'thesis': 'AI models are discussing this position...'
+        }
         
         # Determine health color
         if pl_pct >= 15:
@@ -1730,9 +1735,6 @@ def execute_alpaca_trade(trade_params, portfolio_data):
 def display_portfolio_positions(portfolio_data):
     """Display enhanced portfolio positions with AI analysis and cost tracking"""
     
-    # Display portfolio stock tiles with color-coded health indicators
-    display_portfolio_stock_tiles(portfolio_data)
-    
     if not portfolio_data:
         st.error("❌ Unable to load portfolio data. Check backend connection.")
         return
@@ -1783,17 +1785,8 @@ def display_portfolio_positions(portfolio_data):
     
     st.divider()
     
-    # Enhanced position display
-    st.markdown("### 📈 Position Details")
-    
-    if enhanced:
-        # Use enhanced display components
-        for i, position in enumerate(positions):
-            display_enhanced_portfolio_position(position, i)
-    else:
-        # Fallback to basic display if enhanced data unavailable
-        for i, pos in enumerate(positions):
-            display_basic_portfolio_position(pos, i)
+    # Position Details now handled by integrated tiles above
+    # This section is no longer needed as data is inside the tiles
     
     # Portfolio replacement analysis
     if enhanced and len(positions) > 0:
@@ -2845,14 +2838,28 @@ def main_dashboard():
     
     st.divider()
     
-    # Two column layout
-    col1, col2 = st.columns([3, 2])
+    # Learning Dashboard - Daily Recommendation Center
+    display_daily_recommendation_center()
     
-    with col1:
-        display_portfolio_positions(st.session_state.portfolio_data)
+    st.divider()
     
-    with col2:
-        display_opportunities(st.session_state.opportunities)
+    # Learning Dashboard - Performance Tracking
+    display_learning_dashboard()
+    
+    st.divider()
+    
+    # Thesis Snapshot Status
+    display_thesis_snapshot_status()
+    
+    st.divider()
+    
+    # New integrated portfolio tiles
+    display_integrated_portfolio_tiles(st.session_state.portfolio_data)
+    
+    st.divider()
+    
+    # Opportunities section
+    display_opportunities(st.session_state.opportunities)
     
     # Display AI analysis if available
     for symbol, analysis in st.session_state.ai_analysis.items():
@@ -2929,8 +2936,199 @@ def display_sidebar():
         
         return page
 
+def display_learning_dashboard():
+    """Display learning and performance metrics"""
+    
+    st.subheader("🧠 System Learning & Performance")
+    
+    try:
+        # Get learning data
+        response = requests.get(f"{BACKEND_URL}/api/learning-summary", timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            performance = data.get('performance', {})
+            learning = data.get('learning', {})
+            
+            # Performance metrics
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                win_rate = performance.get('win_rate', 0)
+                st.metric("Win Rate (7d)", f"{win_rate:.1f}%", 
+                         delta=f"{'🚀' if win_rate > 60 else '⚠️' if win_rate < 40 else '📊'}")
+            
+            with col2:
+                total_recs = performance.get('total_recommendations', 0)
+                st.metric("Recent Trades", total_recs)
+            
+            with col3:
+                winners = performance.get('winners', 0)
+                st.metric("Winners", winners)
+            
+            with col4:
+                best_ai = performance.get('best_ai_model', 'ChatGPT')
+                st.metric("Best AI Model", best_ai)
+            
+            # Recent performance
+            recent_winners = performance.get('recent_winners', [])
+            recent_losers = performance.get('recent_losers', [])
+            
+            if recent_winners:
+                st.success(f"🎯 **Recent Winners**: {', '.join(recent_winners)}")
+            
+            if recent_losers:
+                st.warning(f"⚠️ **Recent Losers**: {', '.join(recent_losers)}")
+            
+            # Learning patterns
+            successful_patterns = learning.get('successful_patterns', [])
+            if successful_patterns:
+                st.info(f"📈 **Successful Patterns**: {', '.join(successful_patterns)}")
+            
+            # Strategy status
+            if win_rate > 60:
+                st.success("✅ **Strategy Status**: Performing well - continue current approach")
+            elif win_rate < 40:
+                st.warning("⚠️ **Strategy Status**: Needs adjustment - reviewing recent failures")
+            else:
+                st.info("📊 **Strategy Status**: Building performance data")
+                
+        else:
+            st.info("Learning system initializing...")
+            
+    except Exception as e:
+        st.error(f"Learning metrics unavailable: {e}")
+
+def display_daily_recommendation_center():
+    """Daily recommendation center based on 63.8% success method"""
+    
+    st.subheader("🚀 Daily 100% Opportunity Hunter")
+    st.markdown("*Based on your proven 63.8% monthly success method*")
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        st.markdown("**Ask the AI for today's explosive opportunity:**")
+        st.markdown("*What stock should I put $100 on today for 100% returns this week?*")
+    
+    with col2:
+        if st.button("🎯 Get Today's Pick", type="primary"):
+            with st.spinner("🤖 AI analyzing explosive opportunities..."):
+                try:
+                    response = requests.post(f"{BACKEND_URL}/api/daily-recommendation", timeout=60)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        recommendation = result.get('recommendation', '')
+                        
+                        st.success("✅ Today's AI Recommendation:")
+                        st.markdown(f"**{recommendation}**")
+                        
+                        # Track that recommendation was viewed
+                        st.session_state.last_recommendation = {
+                            'recommendation': recommendation,
+                            'timestamp': datetime.now().isoformat()
+                        }
+                        
+                    else:
+                        st.error("❌ Failed to get recommendation")
+                        
+                except Exception as e:
+                    st.error(f"❌ Error: {e}")
+
+def display_thesis_snapshot_status():
+    """Display thesis snapshot system status"""
+    
+    with st.expander("📸 Thesis Snapshot System"):
+        st.markdown("**Smart thesis tracking** - 3 snapshots per day at market open, midday, and close")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("📸 Take Manual Snapshot"):
+                try:
+                    response = requests.post(f"{BACKEND_URL}/api/manual-snapshot", timeout=30)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        st.success(f"✅ Snapshot taken: {result}")
+                    else:
+                        st.error("❌ Snapshot failed")
+                        
+                except Exception as e:
+                    st.error(f"❌ Error: {e}")
+        
+        with col2:
+            st.markdown("**Next Scheduled Snapshots:**")
+            st.markdown("• 9:30 AM PT (Market Open)")
+            st.markdown("• 12:00 PM PT (Midday)")
+            st.markdown("• 4:00 PM PT (Market Close)")
+
+def add_mobile_responsive_css():
+    """Add mobile-responsive design"""
+    st.markdown("""
+    <style>
+    /* Mobile responsive design */
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding: 1rem;
+        }
+        
+        [data-testid="metric-container"] {
+            background-color: #f0f2f6;
+            border: 1px solid #d0d0d0;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin: 0.25rem 0;
+        }
+        
+        .stButton > button {
+            width: 100%;
+            margin: 0.25rem 0;
+            font-size: 1rem;
+            padding: 0.75rem;
+        }
+        
+        [data-testid="column"] {
+            margin-bottom: 1rem;
+        }
+    }
+    
+    /* Quick action styling */
+    .quick-action-button {
+        background: linear-gradient(90deg, #1f77b4, #ff7f0e);
+        color: white !important;
+        border: none !important;
+        padding: 1rem !important;
+        border-radius: 0.5rem !important;
+        font-weight: bold !important;
+        width: 100% !important;
+    }
+    
+    /* Learning dashboard styling */
+    .learning-metric {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 0.5rem 0;
+    }
+    
+    .success-pattern {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin: 0.25rem 0;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 def main():
     """Main application entry point"""
+    
+    # Add mobile responsive CSS
+    add_mobile_responsive_css()
     
     # Initialize session state
     initialize_session_state()
@@ -2959,18 +3157,7 @@ def main():
             st.info("No opportunities found. The discovery engines are scanning...")
     
     elif page == "🤖 AI Analysis":
-        st.subheader("🤖 AI Analysis Center")
-        
-        symbol = st.text_input("Enter symbol for analysis:", placeholder="e.g., NVDA")
-        if st.button("Run Analysis") and symbol:
-            run_ai_analysis(symbol.upper())
-        
-        # Display previous analyses
-        if st.session_state.ai_analysis:
-            st.write("**Recent Analyses:**")
-            for symbol, analysis in st.session_state.ai_analysis.items():
-                with st.expander(f"{symbol} Analysis"):
-                    display_ai_analysis(symbol, analysis)
+        display_ai_analysis_page()
     
     else:
         st.info(f"Page '{page}' coming soon...")
