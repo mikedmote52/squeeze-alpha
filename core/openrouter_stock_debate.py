@@ -312,6 +312,40 @@ Keep under 200 words. Be decisive."""
             'summary': consensus[:200] + "..." if len(consensus) > 200 else consensus
         }
 
+    def get_stock_analysis(self, ticker):
+        """Simple stock analysis for refresh functionality"""
+        try:
+            # Run async debate in sync context
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(self.debate_stock(ticker, 0, 0, 1.0))
+            loop.close()
+            
+            if 'error' in result:
+                return f"Error getting analysis for {ticker}: {result['error']}"
+            
+            return result.get('final_thesis', f"Analysis complete for {ticker}")
+            
+        except Exception as e:
+            return f"Error analyzing {ticker}: {str(e)}"
+
+    def get_simple_validation(self, ticker, prompt):
+        """Simple validation for thesis checking"""
+        try:
+            # Use Claude for simple validation
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(self.call_openrouter_api('claude', prompt))
+            loop.close()
+            
+            if isinstance(result, dict) and 'error' in result:
+                return f"UNKNOWN - Error: {result['error']}"
+            
+            return result or "UNKNOWN - No response"
+            
+        except Exception as e:
+            return f"UNKNOWN - Error: {str(e)}"
+
 
 # Test function
 async def test_openrouter_debate():

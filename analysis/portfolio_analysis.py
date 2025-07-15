@@ -9,20 +9,51 @@ import json
 import yfinance as yf
 from datetime import datetime, timedelta
 
-# Portfolio positions
-positions = {
-    "AMD": {"quantity": 8, "market_value": 1119.28, "unrealized_pl": 40.0, "current_price": 139.91},
-    "BTBT": {"quantity": 328, "market_value": 1213.6, "unrealized_pl": 103.62, "current_price": 3.70},
-    "CRWV": {"quantity": 14, "market_value": 2153.2, "unrealized_pl": -94.92, "current_price": 153.80},
-    "EAT": {"quantity": 1, "market_value": 169.19, "unrealized_pl": -5.66, "current_price": 169.19},
-    "ETSY": {"quantity": 2, "market_value": 108.48, "unrealized_pl": -0.1, "current_price": 54.24},
-    "LIXT": {"quantity": 417, "market_value": 1130.07, "unrealized_pl": 156.38, "current_price": 2.71},
-    "SMCI": {"quantity": 22, "market_value": 1101.32, "unrealized_pl": 63.14, "current_price": 50.06},
-    "SOUN": {"quantity": 9, "market_value": 116.91, "unrealized_pl": 5.99, "current_price": 12.99},
-    "VIGL": {"quantity": 133, "market_value": 1070.53, "unrealized_pl": 7.86, "current_price": 8.05},
-    "WOLF": {"quantity": 855, "market_value": 1564.65, "unrealized_pl": 251.59, "current_price": 1.83},
-    "WINT": {"quantity": 1160, "market_value": 783.0, "unrealized_pl": -278.64, "current_price": 0.675}
-}
+# Get portfolio positions from real Alpaca API
+def get_real_portfolio_positions():
+    """Get real portfolio positions from Alpaca API"""
+    try:
+        import os
+        import requests
+        
+        ALPACA_API_KEY = os.getenv('ALPACA_API_KEY')
+        ALPACA_SECRET_KEY = os.getenv('ALPACA_SECRET_KEY')
+        ALPACA_BASE_URL = os.getenv('ALPACA_BASE_URL', 'https://paper-api.alpaca.markets')
+        
+        if not ALPACA_API_KEY or not ALPACA_SECRET_KEY:
+            print("❌ Alpaca API keys not configured")
+            return {}
+        
+        headers = {
+            'APCA-API-KEY-ID': ALPACA_API_KEY,
+            'APCA-API-SECRET-KEY': ALPACA_SECRET_KEY,
+            'Content-Type': 'application/json'
+        }
+        
+        response = requests.get(f"{ALPACA_BASE_URL}/v2/positions", headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            alpaca_positions = response.json()
+            positions = {}
+            
+            for pos in alpaca_positions:
+                positions[pos["symbol"]] = {
+                    "quantity": float(pos["qty"]),
+                    "market_value": float(pos["market_value"]),
+                    "unrealized_pl": float(pos["unrealized_pl"]),
+                    "current_price": float(pos["current_price"])
+                }
+            
+            return positions
+        else:
+            print(f"❌ Alpaca API error: {response.status_code}")
+            return {}
+            
+    except Exception as e:
+        print(f"❌ Error getting real portfolio: {e}")
+        return {}
+
+positions = get_real_portfolio_positions()
 
 def analyze_stock(ticker, position_data):
     """Analyze individual stock with AI and technical analysis"""

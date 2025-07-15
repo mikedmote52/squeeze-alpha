@@ -98,7 +98,7 @@ class StockDiscoveryEngine:
             - Small to mid-cap companies ($10M-$5B market cap)  
             - Stocks with major catalysts in the next 7 days
             - High float squeeze potential or momentum breakout setups
-            - Similar patterns to VIGL (+324%), CRWV (+171%), historic biotech moonshots
+            - Similar patterns to historic biotech breakthrough stocks
             - Focus on: FDA decisions, earnings surprises, sector rotation plays, short interest >20%
             - Avoid large caps and conservative plays
             
@@ -209,11 +209,11 @@ class StockDiscoveryEngine:
             
             {prompt}
             
-            CRITICAL: Focus on stocks that could deliver 50-300% returns like our historic winners:
-            - VIGL: +324% (biotech, 15M float, FDA catalyst)
-            - CRWV: +171% (software, 12M float, momentum)
-            - GameStop: +2,700% (retail squeeze, social momentum)
-            - AMC: +2,850% (high shorts, meme status)
+            CRITICAL: Focus on stocks that could deliver 50-300% returns based on:
+            - Historic biotech breakout patterns with FDA catalysts
+            - Small float momentum patterns 
+            - High short interest squeeze potential
+            - Social sentiment momentum patterns
             
             Return results in JSON format with: ticker, company_name, sector, current_price, market_cap, discovery_reason, catalyst_events, confidence_score
             """
@@ -393,90 +393,8 @@ class StockDiscoveryEngine:
         return stocks
     
     def get_mock_candidates(self, timeframe: str) -> List[StockCandidate]:
-        """Mock candidates for testing when Perplexity API is unavailable"""
-        
-        mock_data = {
-            "today": [
-                StockCandidate(
-                    ticker="RXRX",
-                    company_name="Recursion Pharmaceuticals",
-                    sector="Biotechnology",
-                    market_cap=1_200_000_000,
-                    current_price=8.50,
-                    discovery_reason="AI drug discovery breakthrough, small float, FDA catalyst approaching",
-                    catalyst_events=["FDA meeting this week", "AI partnership announcement"],
-                    time_horizon="today",
-                    perplexity_confidence=0.85,
-                    discovery_source="Mock Data"
-                ),
-                StockCandidate(
-                    ticker="SOUN",
-                    company_name="SoundHound AI",
-                    sector="Technology",
-                    market_cap=800_000_000,
-                    current_price=4.20,
-                    discovery_reason="AI voice technology, small cap momentum, high short interest",
-                    catalyst_events=["Earnings today", "AI partnership rumors"],
-                    time_horizon="today",
-                    perplexity_confidence=0.80,
-                    discovery_source="Mock Data"
-                )
-            ],
-            "week": [
-                StockCandidate(
-                    ticker="IONQ",
-                    company_name="IonQ Inc",
-                    sector="Technology",
-                    market_cap=1_500_000_000,
-                    current_price=12.30,
-                    discovery_reason="Quantum computing breakthrough, small float, federal contracts",
-                    catalyst_events=["Federal contract announcement", "Quantum breakthrough publication"],
-                    time_horizon="week",
-                    perplexity_confidence=0.90,
-                    discovery_source="Mock Data"
-                ),
-                StockCandidate(
-                    ticker="BBAI",
-                    company_name="BigBear.ai",
-                    sector="Technology",
-                    market_cap=600_000_000,
-                    current_price=3.80,
-                    discovery_reason="AI analytics for defense, small cap, government contracts",
-                    catalyst_events=["Defense contract renewal", "AI model launch"],
-                    time_horizon="week",
-                    perplexity_confidence=0.75,
-                    discovery_source="Mock Data"
-                )
-            ],
-            "month": [
-                StockCandidate(
-                    ticker="RGTI",
-                    company_name="Rigetti Computing",
-                    sector="Technology",
-                    market_cap=400_000_000,
-                    current_price=2.10,
-                    discovery_reason="Quantum computing, very small cap, breakthrough potential",
-                    catalyst_events=["Quantum chip launch", "IBM partnership potential"],
-                    time_horizon="month",
-                    perplexity_confidence=0.85,
-                    discovery_source="Mock Data"
-                ),
-                StockCandidate(
-                    ticker="QBTS",
-                    company_name="D-Wave Quantum",
-                    sector="Technology",
-                    market_cap=300_000_000,
-                    current_price=1.50,
-                    discovery_reason="Quantum annealing leader, micro cap, enterprise adoption",
-                    catalyst_events=["Enterprise customer wins", "Quantum advantage demonstration"],
-                    time_horizon="month",
-                    perplexity_confidence=0.80,
-                    discovery_source="Mock Data"
-                )
-            ]
-        }
-        
-        return mock_data.get(timeframe, [])
+        """No mock data - return empty list when real APIs unavailable"""
+        return []
     
     async def enrich_candidates_with_market_data(self, candidates: List[StockCandidate]) -> List[StockCandidate]:
         """Enrich candidates with real market data"""
@@ -817,7 +735,7 @@ class DailyLearningEngine:
                 # Quantum/AI
                 ['QUBT', 'IONQ', 'RGTI', 'SMCI'],
                 # Meme/momentum
-                ['AMC', 'GME', 'BBBY', 'CLOV'],
+                ['AMC', 'GME', 'CLOV'],
                 # Recent IPOs/SPACs
                 ['HOOD', 'COIN', 'AFRM', 'SOFI']
             ]
@@ -868,7 +786,7 @@ class DailyLearningEngine:
             
             # For now, use some known volatile tickers
             volatile_tickers = [
-                'SPCE', 'PLTR', 'WISH', 'CLOV', 'CLNE', 'WKHS', 'RIDE', 'NKLA',
+                'SPCE', 'PLTR', 'WISH', 'CLOV', 'CLNE', 'WKHS', 'NKLA',
                 'TLRY', 'SNDL', 'CGC', 'ACB', 'APHA', 'HEXO',
                 'TSLA', 'NIO', 'XPEV', 'LI', 'BABA', 'JD'
             ]

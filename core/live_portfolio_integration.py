@@ -134,13 +134,9 @@ class LivePortfolioIntegration:
             manual_positions = get_all_manual_holdings()
             
         except ImportError:
-            logger.info("Manual holdings config not found, using example data")
-            # Fallback example data
-            manual_positions = [
-                # Example - replace these in config/manual_holdings.py
-                {'symbol': 'AAPL', 'quantity': 10, 'avg_cost': 175.00, 'broker': 'SoFi'},
-                {'symbol': 'NVDA', 'quantity': 5, 'avg_cost': 450.00, 'broker': 'SoFi'},
-            ]
+            logger.info("Manual holdings config not found, no manual positions")
+            # No fallback data - require real configuration
+            manual_positions = []
         
         holdings = []
         

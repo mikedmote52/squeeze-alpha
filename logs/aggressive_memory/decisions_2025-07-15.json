@@ -1,0 +1,60 @@
+{
+  "date": "2025-07-15",
+  "decisions": [
+    {
+      "timestamp": "2025-07-15T00:08:01.108179",
+      "symbol": "BLNK",
+      "action": "SELL",
+      "reasoning": "Position down 5%+, reallocate to explosive winners (bought at $1.03)",
+      "current_price": 0,
+      "purchase_price": 0,
+      "expected_return": -5.0,
+      "loss_from_purchase": null,
+      "decision_type": "aggressive_60_monthly"
+    },
+    {
+      "timestamp": "2025-07-15T00:08:01.110278",
+      "symbol": "CRWV",
+      "action": "SELL",
+      "reasoning": "Position down 5%+, reallocate to explosive winners (bought at $160.58)",
+      "current_price": 0,
+      "purchase_price": 0,
+      "expected_return": -5.0,
+      "loss_from_purchase": null,
+      "decision_type": "aggressive_60_monthly"
+    },
+    {
+      "timestamp": "2025-07-15T00:08:01.112318",
+      "symbol": "EAT",
+      "action": "SELL",
+      "reasoning": "Position down 5%+, reallocate to explosive winners (bought at $174.85)",
+      "current_price": 0,
+      "purchase_price": 0,
+      "expected_return": -5.0,
+      "loss_from_purchase": null,
+      "decision_type": "aggressive_60_monthly"
+    },
+    {
+      "timestamp": "2025-07-15T00:08:01.113922",
+      "symbol": "SOUN",
+      "action": "SELL",
+      "reasoning": "Position down 5%+, reallocate to explosive winners (bought at $12.32)",
+      "current_price": 0,
+      "purchase_price": 0,
+      "expected_return": -5.0,
+      "loss_from_purchase": null,
+      "decision_type": "aggressive_60_monthly"
+    },
+    {
+      "timestamp": "2025-07-15T00:08:01.116485",
+      "symbol": "WOLF",
+      "action": "SELL",
+      "reasoning": "Position down 5%+, reallocate to explosive winners (bought at $1.54)",
+      "current_price": 0,
+      "purchase_price": 0,
+      "expected_return": -5.0,
+      "loss_from_purchase": null,
+      "decision_type": "aggressive_60_monthly"
+    }
+  ]
+}

@@ -126,6 +126,10 @@ ehthumbs.db
 # Deployment
 deployment/
 docker-compose.override.yml
+ngrok
+ngrok.zip
+ngrok.log
+nohup.out
 
 # Local configuration
 local_config.py

@@ -33,8 +33,9 @@ class APIClient {
       
       return await response.json();
     } catch (error) {
-      console.error('Error fetching catalyst opportunities:', error);
-      throw error;
+      console.warn('Error fetching catalyst opportunities:', error);
+      // Return empty data instead of throwing
+      return { catalysts: [], lastUpdated: new Date().toISOString(), source: "API Error" };
     }
   }
 
@@ -54,8 +55,8 @@ class APIClient {
       
       return await response.json();
     } catch (error) {
-      console.error('Error fetching alpha opportunities:', error);
-      throw error;
+      console.warn('Error fetching alpha opportunities:', error);
+      return { opportunities: [], lastUpdated: new Date().toISOString(), source: "API Error" };
     }
   }
 
@@ -76,8 +77,8 @@ class APIClient {
       
       return await response.json();
     } catch (error) {
-      console.error('Error fetching portfolio positions:', error);
-      throw error;
+      console.warn('Error fetching portfolio positions:', error);
+      return { positions: [], lastUpdated: new Date().toISOString() };
     }
   }
 
@@ -244,7 +245,7 @@ export class RealTimeDataSocket {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
 
-  connect(url: string = 'ws://localhost:8000/ws'): Promise<void> {
+  connect(url: string = process.env.REACT_APP_WS_URL || 'ws://localhost:8000/ws'): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         this.ws = new WebSocket(url);

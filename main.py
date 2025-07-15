@@ -15,6 +15,9 @@ import asyncio
 sys.path.append('core')
 sys.path.append('utils')
 
+# Import cost tracking for interactive features
+from cost_tracker import track_api_call, check_daily_limit, get_usage_stats
+
 # Create Flask app
 app = Flask(__name__)
 
@@ -628,6 +631,9 @@ WEB_TEMPLATE = """
             color: #ccc;
         }
     </style>
+    
+    <!-- Interactive AI Features -->
+    <link rel="stylesheet" href="/static/interactive.css">
 </head>
 <body>
     <div class="container">
@@ -640,6 +646,26 @@ WEB_TEMPLATE = """
         <div class="status-bar">
             <span class="status-indicator status-warning"></span>
             <strong>System Status:</strong> Ready for commands
+        </div>
+        
+        <!-- Interactive AI Features - Cost Tracker -->
+        <div class="cost-tracker">
+            <h4>📊 API Usage Today</h4>
+            <div class="usage-stat">
+                <span>Calls:</span>
+                <strong><span id="call-count">0</span> / 50</strong>
+            </div>
+            <div class="usage-stat">
+                <span>Remaining:</span>
+                <strong><span id="remaining-calls">50</span></strong>
+            </div>
+            <div class="usage-stat">
+                <span>Cost:</span>
+                <strong><span id="today-cost">$0.000</span></strong>
+            </div>
+            <button class="interactive-button usage-button" onclick="showUsageStats()">
+                📈 Details
+            </button>
         </div>
         
         <!-- Portfolio Tiles Section -->
@@ -830,6 +856,9 @@ WEB_TEMPLATE = """
             }
         }, 60000);
     </script>
+    
+    <!-- Interactive AI Features JavaScript -->
+    <script src="/static/interactive.js"></script>
 </body>
 </html>
 """
@@ -1664,6 +1693,18 @@ def generate_portfolio_tiles_html():
                 <div class="stock-risk risk-{pos.risk_level.lower()}">
                     {pos.risk_level} RISK
                 </div>
+                
+                <!-- Interactive AI Buttons -->
+                <div class="interactive-controls">
+                    <button class="interactive-button refresh-button" 
+                            onclick="event.stopPropagation(); refreshStock('{pos.ticker}')">
+                        🔄 Refresh
+                    </button>
+                    <button class="interactive-button validate-button" 
+                            onclick="event.stopPropagation(); validateThesis('{pos.ticker}')">
+                        🤔 Validate
+                    </button>
+                </div>
             </div>
             '''
         
@@ -1765,6 +1806,98 @@ def generate_stock_details_html(ticker):
         
     except Exception as e:
         return f'<h3>❌ Error</h3><p>Failed to load {ticker} details: {str(e)}</p>'
+
+# =============================================================================
+# INTERACTIVE AI FEATURES - Simple, Reliable Extensions
+# =============================================================================
+
+@app.route('/api/force_refresh/<ticker>', methods=['POST'])
+def force_refresh_analysis(ticker):
+    """Simple refresh button - calls existing OpenRouter stock debate"""
+    try:
+        # Check daily limit first
+        if not check_daily_limit():
+            return jsonify({
+                'error': 'Daily API limit exceeded (50 calls/day)',
+                'usage': get_usage_stats()
+            }), 429
+        
+        # Call existing OpenRouter analysis
+        from openrouter_stock_debate import OpenRouterStockDebate
+        debate = OpenRouterStockDebate()
+        result = debate.get_stock_analysis(ticker.upper())
+        
+        # Track the API call
+        track_api_call('force_refresh', ticker, 0.02, False)
+        
+        return jsonify({
+            'ticker': ticker.upper(),
+            'analysis': result,
+            'refreshed_at': datetime.now().isoformat(),
+            'source': 'Fresh OpenRouter Analysis',
+            'usage': get_usage_stats()
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/validate_thesis/<ticker>', methods=['POST'])  
+def validate_thesis(ticker):
+    """Basic thesis validation - simple CONFIRMED/WEAKENED/INVALIDATED response"""
+    try:
+        # Check daily limit first
+        if not check_daily_limit():
+            return jsonify({
+                'error': 'Daily API limit exceeded (50 calls/day)',
+                'usage': get_usage_stats()
+            }), 429
+        
+        # Get existing analysis from cache/memory (simplified)
+        from openrouter_stock_debate import OpenRouterStockDebate
+        debate = OpenRouterStockDebate()
+        
+        # Simple validation prompt
+        validation_prompt = f"Based on current market conditions and recent news, is the investment thesis for {ticker.upper()} still valid? Respond with one word: CONFIRMED, WEAKENED, or INVALIDATED, followed by a brief explanation."
+        
+        result = debate.get_simple_validation(ticker.upper(), validation_prompt)
+        
+        # Track the API call
+        track_api_call('validate_thesis', ticker, 0.015, False)
+        
+        # Parse simple response
+        status = "UNKNOWN"
+        explanation = result
+        
+        if "CONFIRMED" in result.upper():
+            status = "CONFIRMED"
+        elif "WEAKENED" in result.upper():
+            status = "WEAKENED"
+        elif "INVALIDATED" in result.upper():
+            status = "INVALIDATED"
+        
+        return jsonify({
+            'ticker': ticker.upper(),
+            'status': status,
+            'explanation': explanation,
+            'validated_at': datetime.now().isoformat(),
+            'usage': get_usage_stats()
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/usage_stats', methods=['GET'])
+def api_usage_stats():
+    """Simple cost counter endpoint"""
+    try:
+        stats = get_usage_stats()
+        return jsonify({
+            'success': True,
+            'stats': stats,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
     # Check if running in Replit (web mode) or console

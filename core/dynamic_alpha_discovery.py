@@ -492,6 +492,94 @@ async def discover_dynamic_alpha_opportunities() -> str:
     engine = DynamicAlphaDiscoveryEngine()
     return await engine.discover_dynamic_opportunities()
 
+async def get_dynamic_alpha_candidates() -> List[DynamicAlphaCandidate]:
+    """Get dynamic alpha candidates as objects for API integration"""
+    try:
+        engine = DynamicAlphaDiscoveryEngine()
+        
+        # Build the stock universe
+        logger.info("🔍 Building dynamic stock universe...")
+        universe = await engine.build_dynamic_universe()
+        
+        # Scan for opportunities  
+        logger.info(f"🔍 Scanning {len(universe)} dynamically discovered stocks...")
+        candidates = []
+        
+        for i, ticker in enumerate(universe):
+            try:
+                stock = yf.Ticker(ticker)
+                info = stock.info
+                hist = stock.history(period="2d")
+                
+                if hist.empty:
+                    continue
+                
+                current_price = hist['Close'].iloc[-1]
+                if len(hist) >= 2:
+                    prev_price = hist['Close'].iloc[-2]
+                    price_change_pct = ((current_price - prev_price) / prev_price) * 100
+                else:
+                    price_change_pct = 0
+                
+                volume = int(hist['Volume'].iloc[-1])
+                avg_volume = hist['Volume'].mean() if len(hist) > 1 else volume
+                volume_spike = volume / avg_volume if avg_volume > 0 else 1.0
+                
+                market_cap = info.get('marketCap', 0)
+                company_name = info.get('longName', ticker)
+                sector = info.get('sector', 'Unknown')
+                
+                # Apply discovery criteria
+                discovery_method = "Dynamic Market Scan"
+                confidence = 60
+                reason = "High dollar volume"
+                
+                if abs(price_change_pct) >= 3.0:
+                    confidence = 80
+                    reason = f"Price move {price_change_pct:+.1f}%, High dollar volume"
+                
+                if volume_spike >= 1.5:
+                    confidence = 80
+                    if abs(price_change_pct) >= 3.0:
+                        reason = f"Price move {price_change_pct:+.1f}%, Volume spike {volume_spike:.1f}x"
+                
+                # Filter by criteria
+                dollar_volume = current_price * volume
+                if (dollar_volume >= engine.min_volume_dollars and
+                    volume >= engine.min_avg_volume and
+                    engine.min_market_cap <= market_cap <= engine.max_market_cap and
+                    engine.min_price <= current_price <= engine.max_price):
+                    
+                    candidate = DynamicAlphaCandidate(
+                        ticker=ticker,
+                        company_name=company_name,
+                        current_price=current_price,
+                        price_change_pct=price_change_pct,
+                        volume=volume,
+                        volume_spike=volume_spike,
+                        market_cap=market_cap,
+                        sector=sector,
+                        discovery_method=discovery_method,
+                        confidence_score=confidence / 100.0,
+                        reason=reason
+                    )
+                    
+                    candidates.append(candidate)
+                
+            except Exception as e:
+                logger.debug(f"Error processing {ticker}: {e}")
+                continue
+        
+        # Sort by confidence and volume
+        candidates.sort(key=lambda x: (x.confidence_score, x.volume), reverse=True)
+        
+        logger.info(f"✅ Found {len(candidates)} dynamic alpha candidates")
+        return candidates[:10]  # Top 10
+        
+    except Exception as e:
+        logger.error(f"Error in dynamic alpha discovery: {e}")
+        return []
+
 # Test function
 async def main():
     """Test the dynamic alpha discovery engine"""

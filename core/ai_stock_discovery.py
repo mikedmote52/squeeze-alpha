@@ -264,11 +264,20 @@ class AIStockDiscovery:
         """Get stocks with strong momentum using real technical data"""
         try:
             import yfinance as yf
-            # Check S&P 500 components for momentum
-            sp500_sample = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA', 'META', 'AMZN', 'BRK-B', 'UNH', 'JNJ']
+            import pandas as pd
+            
+            # Get real S&P 500 components from Wikipedia
+            try:
+                sp500_url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+                tables = pd.read_html(sp500_url)
+                sp500_tickers = tables[0]['Symbol'].tolist()[:50]  # First 50 for scanning
+            except:
+                # Fallback to major market indices if Wikipedia fails
+                sp500_tickers = []
+            
             momentum_stocks = []
             
-            for ticker in sp500_sample:
+            for ticker in sp500_tickers:
                 try:
                     stock = yf.Ticker(ticker)
                     hist = stock.history(period='30d')

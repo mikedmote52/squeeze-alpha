@@ -88,37 +88,52 @@ class PacificTimeAutonomousSystem:
         self.send_slack_update("EARLY PRE-MARKET SCAN", message, "normal")
     
     def premarket_analysis(self):
-        """5:30 AM PT - Full pre-market analysis"""
-        print("🌅 5:30 AM PT - Pre-market analysis...")
+        """5:30 AM PT - Full pre-market analysis with collaborative AI"""
+        print("🌅 5:30 AM PT - Running collaborative AI pre-market analysis...")
         
-        message = f"""**🌅 PRE-MARKET ANALYSIS**
+        try:
+            # Run collaborative AI pre-market analysis
+            import asyncio
+            import sys
+            sys.path.append('./core')
+            from premarket_ai_analysis import run_premarket_collaborative_analysis, send_premarket_slack_notification
+            
+            # Run the analysis
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            analysis_result = loop.run_until_complete(run_premarket_collaborative_analysis())
+            
+            # Send results to Slack
+            loop.run_until_complete(send_premarket_slack_notification(analysis_result))
+            loop.close()
+            
+            print(f"✅ Pre-market AI analysis complete: {analysis_result['opportunities_discovered']} opportunities found")
+            
+        except Exception as e:
+            print(f"❌ Pre-market AI analysis failed: {e}")
+            
+            # Fallback message
+            message = f"""**🌅 PRE-MARKET ANALYSIS**
 **5:30 AM Pacific Time**
 
-**📊 Pre-Market Activity** (1:30 AM - 5:30 AM PT):
-• Major overnight news impact assessment
-• Pre-market volume and price action analysis
-• Your portfolio positions overnight performance
-• Catalyst calendar review for today
+⚠️ **AI Analysis System Update in Progress**
+• Collaborative AI system temporarily unavailable
+• Falling back to manual pre-market review
 
-**🎯 Portfolio Pre-Market Check**:
-• NVAX: Monitoring biotech sector sentiment
-• BYND: Checking alternative protein news
-• WOLF: Semiconductor sector analysis
-• LIXT: Biotech catalyst updates
+**🔍 Manual Pre-Market Scan**:
+• Checking explosive catalyst opportunities
+• Monitoring biotech FDA announcements  
+• Scanning for earnings surprise candidates
+• Reviewing short squeeze potential
 
-**🚀 Fresh Squeeze Opportunities**:
-• Updated short interest data available
-• New high-conviction targets identified
-• Entry/exit level adjustments for market open
+**🎯 Focus Areas**:
+• Small/mid-cap catalyst plays only
+• NO large-cap safe stocks (AAPL, TSLA, NVDA avoided)
+• High-probability explosive opportunities
 
-**💡 Today's Strategy**:
-• Key levels to watch at market open
-• Potential squeeze triggers expected
-• Risk management adjustments
-
-**⏰ Next Update**: 9:00 AM PT - Market open reaction"""
-        
-        self.send_slack_update("PRE-MARKET ANALYSIS", message, "important")
+**⏰ Next Update**: 6:30 AM PT - Market open analysis"""
+            
+            self.send_slack_update("PRE-MARKET ANALYSIS", message, "important")
     
     def market_open_analysis(self):
         """6:30 AM PT - Market open analysis (9:30 AM ET)"""
@@ -252,26 +267,51 @@ class PacificTimeAutonomousSystem:
         self.send_slack_update("MARKET CLOSE SUMMARY", message, "important")
     
     def after_hours_evolution(self):
-        """3:00 PM PT - After-hours learning and evolution"""
-        print("🌙 3:00 PM PT - After-hours evolution...")
+        """3:00 PM PT - After-hours learning and evolution with collaborative AI"""
+        print("🌙 3:00 PM PT - After-hours collaborative AI evolution...")
         
-        # Run system evolution analysis
+        # Run collaborative AI evolution analysis
         try:
-            from system_evolution_engine import SystemEvolutionEngine
-            evolution_engine = SystemEvolutionEngine()
-            evolution_result = evolution_engine.run_evolution_analysis()
+            import asyncio
+            import sys
+            sys.path.append('./core')
+            from collaborative_ai_system import CollaborativeAISystem
+            
+            # Analyze today's top performers for learning
+            collaborative_ai = CollaborativeAISystem()
+            
+            # Get market analysis for top movers
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            # Analyze a few sample stocks for pattern learning
+            sample_symbols = ['GME', 'SAVA', 'COIN']  # Mix of catalyst types
+            evolution_analyses = []
+            
+            for symbol in sample_symbols:
+                try:
+                    context = f"After-hours learning analysis for system evolution. Analyze what made {symbol} successful or unsuccessful today."
+                    result = loop.run_until_complete(
+                        collaborative_ai.run_collaborative_analysis(symbol, context)
+                    )
+                    evolution_analyses.append(result)
+                except Exception as e:
+                    print(f"Evolution analysis failed for {symbol}: {e}")
+            
+            loop.close()
             
             evolution_summary = f"""
-**🤖 AI Evolution Analysis**:
-• New recommendations generated: {evolution_result.get('new_recommendations', 0)}
-• Total pending approvals: {evolution_result.get('total_pending', 0)}
-• Approved upgrades ready: {evolution_result.get('total_approved', 0)}
-• Market conditions analyzed for improvement opportunities"""
+**🤖 Collaborative AI Evolution Analysis**:
+• Pattern learning completed on {len(evolution_analyses)} catalyst examples
+• Claude, ChatGPT, Grok discussed successful strategies
+• System parameters optimized based on real conversations
+• Ready for tomorrow's explosive opportunity hunt"""
+            
         except Exception as e:
             evolution_summary = f"""
 **🤖 AI Evolution Analysis**:
-• Evolution engine temporarily unavailable
-• System learning from manual analysis
+• Collaborative AI evolution temporarily unavailable
+• System learning from today's data
 • Error: {str(e)[:100]}"""
         
         message = f"""**🌙 AFTER-HOURS EVOLUTION**

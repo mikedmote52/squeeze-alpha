@@ -1,0 +1,24 @@
+{
+  "symbol": "AAPL",
+  "context": "Testing real AI conversations",
+  "timestamp": "2025-07-14T11:44:41.024791",
+  "source": "Direct OpenRouter Test",
+  "agents": [
+    {
+      "name": "Claude",
+      "model": "anthropic/claude-3-sonnet",
+      "confidence": 0.7,
+      "reasoning": "1. Current outlook: Bullish\n\n2. Key factors:\n- Strong brand loyalty and ecosystem\n- Robust services revenue growth\n- Potential for new product categories (AR/VR, autonomous vehicles)\n\n3. Confidence level: 7\n\n4. Despite concerns over slowing iPhone sales and supply chain disruptions, Apple's diversified revenue streams, loyal customer base, and ability to innovate position it well for long-term growth. However, competition and macroeconomic headwinds warrant caution.",
+      "timestamp": "2025-07-14T11:44:36.963249",
+      "source": "OpenRouter API"
+    },
+    {
+      "name": "ChatGPT",
+      "model": "openai/gpt-4",
+      "confidence": 0.8,
+      "reasoning": "1. Outlook: Bullish\n2. Key Factors: Strong product demand, consistent innovation, robust financial performance, and dominant market position.\n3. Confidence Level: 8\n4. Reasoning: AAPL continues to deliver strong results backed by its diversified product portfolio and services. The company's plans for growth and innovation, along with its strong balance sheet, make it a compelling investment.",
+      "timestamp": "2025-07-14T11:44:40.836648",
+      "source": "OpenRouter API"
+    }
+  ]
+}

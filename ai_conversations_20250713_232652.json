@@ -1,0 +1,114 @@
+[
+  {
+    "symbol": "AAPL",
+    "timestamp": "2025-07-13T23:26:51.829655",
+    "source": "Enhanced Market Data Analysis - Real yfinance API",
+    "agents": [
+      {
+        "name": "Technical Analysis AI",
+        "confidence": 0.85,
+        "reasoning": "\n**AAPL Technical Analysis:**\n\n\ud83d\udcc8 **Trend Analysis:**\n\u2022 Current Price: $211.16\n\u2022 20-day MA: $204.32 (Above)\n\u2022 50-day MA: $203.90 (Above)\n\u2022 Overall Trend: BULLISH\n\n\u26a1 **Momentum Indicators:**\n\u2022 7-day Change: -0.6%\n\u2022 30-day Change: +5.6%\n\u2022 Momentum: WEAK\n\u2022 Volatility: 2.8%\n\n\ud83c\udfaf **Key Levels:**\n\u2022 Recent High: $216.23 (-2.3% from current)\n\u2022 Recent Low: $195.07 (+8.2% from current)\n\u2022 Support: $204.32\n\u2022 Resistance: $216.23\n\n\ud83d\udca1 **Technical Thesis:**\nTechnical indicators show transitional phase. Monitor for confirmation of new trend direction before committing capital.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      },
+      {
+        "name": "Fundamental Analysis AI",
+        "confidence": 0.55,
+        "reasoning": "\n**AAPL Fundamental Analysis:**\n\n\ud83c\udfe2 **Company Profile:**\n\u2022 Name: Apple Inc.\n\u2022 Market Cap: $3,153,843,453,952 (Large-cap)\n\u2022 Valuation: Overvalued\n\u2022 P/E Ratio: 32.9\n\u2022 Beta: 1.21\n\n\ud83d\udcca **Valuation Assessment:**\n\u2022 Current Valuation: Overvalued\n\u2022 Market Correlation: Moderate\n\u2022 30-day Performance: +5.6%\n\n\ud83d\udcbc **Investment Thesis:**\nMixed fundamental signals. Requires additional research on company-specific catalysts and sector trends before position sizing.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      },
+      {
+        "name": "Risk Assessment AI",
+        "confidence": 0.7999999999999999,
+        "reasoning": "\n**AAPL Risk Assessment:**\n\n\u26a0\ufe0f **Risk Metrics:**\n\u2022 Volatility: 2.8% (LOW risk)\n\u2022 Market Sensitivity (Beta): 1.21 (Moderate)\n\u2022 7-day Volatility: 0.6%\n\u2022 30-day Range: +5.6%\n\n\ud83d\udee1\ufe0f **Risk Profile:**\n\u2022 Overall Risk Level: LOW\n\u2022 Market Correlation: Moderate\n\u2022 Recent Stability: Stable\n\n\ud83d\udca1 **Risk Management Thesis:**\nLower risk profile suitable for core holding (5-8% of portfolio). Can use wider stops (20-25%) but monitor for momentum changes.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      }
+    ]
+  },
+  {
+    "symbol": "TSLA",
+    "timestamp": "2025-07-13T23:26:52.059320",
+    "source": "Enhanced Market Data Analysis - Real yfinance API",
+    "agents": [
+      {
+        "name": "Technical Analysis AI",
+        "confidence": 0.55,
+        "reasoning": "\n**TSLA Technical Analysis:**\n\n\ud83d\udcc8 **Trend Analysis:**\n\u2022 Current Price: $313.51\n\u2022 20-day MA: $318.03 (Below)\n\u2022 50-day MA: $320.08 (Below)\n\u2022 Overall Trend: BEARISH\n\n\u26a1 **Momentum Indicators:**\n\u2022 7-day Change: -0.7%\n\u2022 30-day Change: -12.5%\n\u2022 Momentum: WEAK\n\u2022 Volatility: 5.2%\n\n\ud83c\udfaf **Key Levels:**\n\u2022 Recent High: $367.71 (-14.7% from current)\n\u2022 Recent Low: $273.21 (+14.8% from current)\n\u2022 Support: $318.03\n\u2022 Resistance: $367.71\n\n\ud83d\udca1 **Technical Thesis:**\nTechnical indicators show transitional phase. Monitor for confirmation of new trend direction before committing capital.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      },
+      {
+        "name": "Fundamental Analysis AI",
+        "confidence": 0.4,
+        "reasoning": "\n**TSLA Fundamental Analysis:**\n\n\ud83c\udfe2 **Company Profile:**\n\u2022 Name: Tesla, Inc.\n\u2022 Market Cap: $1,009,803,198,464 (Large-cap)\n\u2022 Valuation: Overvalued\n\u2022 P/E Ratio: 178.1\n\u2022 Beta: 2.46\n\n\ud83d\udcca **Valuation Assessment:**\n\u2022 Current Valuation: Overvalued\n\u2022 Market Correlation: High\n\u2022 30-day Performance: -12.5%\n\n\ud83d\udcbc **Investment Thesis:**\nMixed fundamental signals. Requires additional research on company-specific catalysts and sector trends before position sizing.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      },
+      {
+        "name": "Risk Assessment AI",
+        "confidence": 0.6,
+        "reasoning": "\n**TSLA Risk Assessment:**\n\n\u26a0\ufe0f **Risk Metrics:**\n\u2022 Volatility: 5.2% (LOW risk)\n\u2022 Market Sensitivity (Beta): 2.46 (High)\n\u2022 7-day Volatility: 0.7%\n\u2022 30-day Range: -12.5%\n\n\ud83d\udee1\ufe0f **Risk Profile:**\n\u2022 Overall Risk Level: LOW\n\u2022 Market Correlation: High\n\u2022 Recent Stability: Stable\n\n\ud83d\udca1 **Risk Management Thesis:**\nLower risk profile suitable for core holding (5-8% of portfolio). Can use wider stops (20-25%) but monitor for momentum changes.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      }
+    ]
+  },
+  {
+    "symbol": "NVDA",
+    "timestamp": "2025-07-13T23:26:52.291066",
+    "source": "Enhanced Market Data Analysis - Real yfinance API",
+    "agents": [
+      {
+        "name": "Technical Analysis AI",
+        "confidence": 0.85,
+        "reasoning": "\n**NVDA Technical Analysis:**\n\n\ud83d\udcc8 **Trend Analysis:**\n\u2022 Current Price: $164.92\n\u2022 20-day MA: $153.11 (Above)\n\u2022 50-day MA: $139.52 (Above)\n\u2022 Overall Trend: BULLISH\n\n\u26a1 **Momentum Indicators:**\n\u2022 7-day Change: +4.9%\n\u2022 30-day Change: +18.5%\n\u2022 Momentum: MODERATE\n\u2022 Volatility: 3.5%\n\n\ud83c\udfaf **Key Levels:**\n\u2022 Recent High: $167.89 (-1.8% from current)\n\u2022 Recent Low: $132.91 (+24.1% from current)\n\u2022 Support: $153.11\n\u2022 Resistance: $167.89\n\n\ud83d\udca1 **Technical Thesis:**\nHealthy bullish trend with sustainable momentum. Good entry opportunity for long positions with stop below 20-day MA.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      },
+      {
+        "name": "Fundamental Analysis AI",
+        "confidence": 0.4,
+        "reasoning": "\n**NVDA Fundamental Analysis:**\n\n\ud83c\udfe2 **Company Profile:**\n\u2022 Name: NVIDIA Corporation\n\u2022 Market Cap: $4,022,003,040,256 (Large-cap)\n\u2022 Valuation: Overvalued\n\u2022 P/E Ratio: 53.2\n\u2022 Beta: 2.12\n\n\ud83d\udcca **Valuation Assessment:**\n\u2022 Current Valuation: Overvalued\n\u2022 Market Correlation: High\n\u2022 30-day Performance: +18.5%\n\n\ud83d\udcbc **Investment Thesis:**\nMixed fundamental signals. Requires additional research on company-specific catalysts and sector trends before position sizing.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      },
+      {
+        "name": "Risk Assessment AI",
+        "confidence": 0.7,
+        "reasoning": "\n**NVDA Risk Assessment:**\n\n\u26a0\ufe0f **Risk Metrics:**\n\u2022 Volatility: 3.5% (LOW risk)\n\u2022 Market Sensitivity (Beta): 2.12 (High)\n\u2022 7-day Volatility: 4.9%\n\u2022 30-day Range: +18.5%\n\n\ud83d\udee1\ufe0f **Risk Profile:**\n\u2022 Overall Risk Level: LOW\n\u2022 Market Correlation: High\n\u2022 Recent Stability: Stable\n\n\ud83d\udca1 **Risk Management Thesis:**\nLower risk profile suitable for core holding (5-8% of portfolio). Can use wider stops (20-25%) but monitor for momentum changes.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      }
+    ]
+  },
+  {
+    "symbol": "AMD",
+    "timestamp": "2025-07-13T23:26:52.527680",
+    "source": "Enhanced Market Data Analysis - Real yfinance API",
+    "agents": [
+      {
+        "name": "Technical Analysis AI",
+        "confidence": 0.95,
+        "reasoning": "\n**AMD Technical Analysis:**\n\n\ud83d\udcc8 **Trend Analysis:**\n\u2022 Current Price: $146.42\n\u2022 20-day MA: $134.91 (Above)\n\u2022 50-day MA: $120.53 (Above)\n\u2022 Overall Trend: BULLISH\n\n\u26a1 **Momentum Indicators:**\n\u2022 7-day Change: +5.7%\n\u2022 30-day Change: +29.5%\n\u2022 Momentum: STRONG\n\u2022 Volatility: 4.1%\n\n\ud83c\udfaf **Key Levels:**\n\u2022 Recent High: $147.75 (-0.9% from current)\n\u2022 Recent Low: $108.62 (+34.8% from current)\n\u2022 Support: $134.91\n\u2022 Resistance: $147.75\n\n\ud83d\udca1 **Technical Thesis:**\nHealthy bullish trend with sustainable momentum. Good entry opportunity for long positions with stop below 20-day MA.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      },
+      {
+        "name": "Fundamental Analysis AI",
+        "confidence": 0.45,
+        "reasoning": "\n**AMD Fundamental Analysis:**\n\n\ud83c\udfe2 **Company Profile:**\n\u2022 Name: Advanced Micro Devices, Inc.\n\u2022 Market Cap: $237,405,388,800 (Large-cap)\n\u2022 Valuation: Overvalued\n\u2022 P/E Ratio: 106.1\n\u2022 Beta: 1.99\n\n\ud83d\udcca **Valuation Assessment:**\n\u2022 Current Valuation: Overvalued\n\u2022 Market Correlation: High\n\u2022 30-day Performance: +29.5%\n\n\ud83d\udcbc **Investment Thesis:**\nMomentum play with stretched valuation. Suitable for short-term trading but risk of correction. Use tight stop-losses.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      },
+      {
+        "name": "Risk Assessment AI",
+        "confidence": 0.7,
+        "reasoning": "\n**AMD Risk Assessment:**\n\n\u26a0\ufe0f **Risk Metrics:**\n\u2022 Volatility: 4.1% (MEDIUM risk)\n\u2022 Market Sensitivity (Beta): 1.99 (High)\n\u2022 7-day Volatility: 5.7%\n\u2022 30-day Range: +29.5%\n\n\ud83d\udee1\ufe0f **Risk Profile:**\n\u2022 Overall Risk Level: MEDIUM\n\u2022 Market Correlation: High\n\u2022 Recent Stability: Unstable\n\n\ud83d\udca1 **Risk Management Thesis:**\nModerate risk suitable for standard position sizing (3-5% of portfolio). Use 15-20% stop-loss. Monitor for volatility expansion.\n",
+        "model": "Unknown",
+        "source": "Unknown"
+      }
+    ]
+  }
+]

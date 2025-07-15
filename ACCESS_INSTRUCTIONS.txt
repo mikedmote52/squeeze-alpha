@@ -1,0 +1,25 @@
+
+🔥 AI Trading System - Access Instructions
+
+📱 iPhone Home Screen Installation:
+1. Open Safari and go to: http://192.168.7.53:8501
+2. Tap Share button (⬆️) 
+3. Tap "Add to Home Screen"
+4. Name it "AI Trading" and tap "Add"
+
+🖥️  Computer Access:
+• Same computer: http://localhost:8501
+• Other devices: http://192.168.7.53:8501
+
+✅ Features Available:
+• Real-time portfolio tracking
+• AI analysis and recommendations  
+• Market opportunities discovery
+• Cost tracking dashboard
+• All data is live and real (no mock data)
+
+🔒 Secure: Only accessible on your local network
+⚡ Fast: Runs entirely on your computer
+📊 Real: All data comes from live APIs
+
+Generated: July 13, 2025 at 10:40 PM

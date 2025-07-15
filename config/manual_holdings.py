@@ -8,12 +8,7 @@ Add your SoFi, Robinhood, or other broker holdings here
 SOFI_HOLDINGS = [
     # Format: {'symbol': 'TICKER', 'quantity': shares, 'avg_cost': average_price, 'broker': 'SoFi'}
     
-    # Example entries - replace with your actual holdings:
-    # {'symbol': 'AAPL', 'quantity': 25, 'avg_cost': 175.00, 'broker': 'SoFi'},
-    # {'symbol': 'NVDA', 'quantity': 10, 'avg_cost': 450.00, 'broker': 'SoFi'},
-    # {'symbol': 'MSFT', 'quantity': 15, 'avg_cost': 380.00, 'broker': 'SoFi'},
-    # {'symbol': 'GOOGL', 'quantity': 5, 'avg_cost': 2800.00, 'broker': 'SoFi'},
-    # {'symbol': 'TSLA', 'quantity': 8, 'avg_cost': 220.00, 'broker': 'SoFi'},
+    # Add your actual holdings here - no examples provided
     
     # Add your actual SoFi holdings here:
     
@@ -23,9 +18,7 @@ SOFI_HOLDINGS = [
 OTHER_HOLDINGS = [
     # Format: {'symbol': 'TICKER', 'quantity': shares, 'avg_cost': average_price, 'broker': 'BrokerName'}
     
-    # Example entries:
-    # {'symbol': 'SPY', 'quantity': 50, 'avg_cost': 420.00, 'broker': 'Robinhood'},
-    # {'symbol': 'QQQ', 'quantity': 30, 'avg_cost': 350.00, 'broker': 'Schwab'},
+    # Add your other broker holdings here - no examples provided
     
     # Add your other holdings here:
     
@@ -57,8 +50,6 @@ TO UPDATE YOUR HOLDINGS:
 
 5. The system will automatically get current prices and calculate gains/losses
 
-Example of a complete entry:
-{'symbol': 'NVDA', 'quantity': 10, 'avg_cost': 450.00, 'broker': 'SoFi'},
-
-This means you own 10 shares of NVDA bought at an average price of $450.00
+Format for entries:
+{'symbol': 'TICKER', 'quantity': shares_owned, 'avg_cost': average_purchase_price, 'broker': 'BrokerName'}
 """
