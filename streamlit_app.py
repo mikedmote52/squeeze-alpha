@@ -461,7 +461,7 @@ def display_portfolio_stock_tiles(portfolio_data):
                                 json=buy_payload,
                                 timeout=10
                             )
-                            if response.status_code == 200:
+                            if response.status_code == 201:
                                 result = response.json()
                                 st.success(f"✅ BUY order executed! Order ID: {result.get('orderId', 'N/A')}")
                                 # Refresh portfolio data
@@ -488,7 +488,7 @@ def display_portfolio_stock_tiles(portfolio_data):
                                 json=sell_payload,
                                 timeout=10
                             )
-                            if response.status_code == 200:
+                            if response.status_code == 201:
                                 result = response.json()
                                 st.success(f"✅ SELL ALL order executed! Order ID: {result.get('orderId', 'N/A')}")
                                 # Refresh portfolio data
@@ -516,7 +516,7 @@ def display_portfolio_stock_tiles(portfolio_data):
                                 json=sell_payload,
                                 timeout=10
                             )
-                            if response.status_code == 200:
+                            if response.status_code == 201:
                                 result = response.json()
                                 st.success(f"✅ SELL HALF order executed! Order ID: {result.get('orderId', 'N/A')}")
                                 # Refresh portfolio data
