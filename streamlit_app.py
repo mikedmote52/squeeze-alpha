@@ -24,6 +24,10 @@ sys.path.append('./core')
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Backend URL configuration
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
+logger.info(f"Using backend URL: {BACKEND_URL}")
+
 # Configure Streamlit page
 st.set_page_config(
     page_title="Squeeze Alpha Trading System",
@@ -213,7 +217,7 @@ st.markdown("""
 def display_api_cost_tracker():
     """Display API cost tracking at the top of pages"""
     try:
-        response = requests.get("http://localhost:8000/api/costs/summary", timeout=5)
+        response = requests.get(f"{BACKEND_URL}/api/costs/summary", timeout=5)
         if response.status_code == 200:
             cost_data = response.json()
             
@@ -346,7 +350,7 @@ def display_portfolio_stock_tiles(portfolio_data):
                     
                     # Get full AI thesis
                     try:
-                        thesis_response = requests.get(f"http://localhost:8000/api/ai-analysis/full/{symbol}", timeout=10)
+                        thesis_response = requests.get(f"{BACKEND_URL}/api/ai-analysis/full/{symbol}", timeout=10)
                         if thesis_response.status_code == 200:
                             thesis_data = thesis_response.json()
                             
@@ -453,7 +457,7 @@ def display_portfolio_stock_tiles(portfolio_data):
                                 "time_in_force": "day"
                             }
                             response = requests.post(
-                                "http://localhost:8000/api/trades/execute",
+                                f"{BACKEND_URL}/api/trades/execute",
                                 json=buy_payload,
                                 timeout=10
                             )
@@ -480,7 +484,7 @@ def display_portfolio_stock_tiles(portfolio_data):
                                 "time_in_force": "day"
                             }
                             response = requests.post(
-                                "http://localhost:8000/api/trades/execute",
+                                f"{BACKEND_URL}/api/trades/execute",
                                 json=sell_payload,
                                 timeout=10
                             )
@@ -508,7 +512,7 @@ def display_portfolio_stock_tiles(portfolio_data):
                                 "time_in_force": "day"
                             }
                             response = requests.post(
-                                "http://localhost:8000/api/trades/execute",
+                                f"{BACKEND_URL}/api/trades/execute",
                                 json=sell_payload,
                                 timeout=10
                             )
@@ -533,7 +537,7 @@ def get_real_time_ai_analysis(symbol: str, position: dict) -> dict:
         status_placeholder.info("🤖 AI Models analyzing... Claude, ChatGPT, and Gemini are discussing...")
         
         # Get cached baseline first for instant display
-        baseline_response = requests.get(f"http://localhost:8000/api/baselines/stock/{symbol}", timeout=10)
+        baseline_response = requests.get(f"{BACKEND_URL}/api/baselines/stock/{symbol}", timeout=10)
         ai_analysis = {
             'claude_score': 'Hold',
             'gpt_score': 'Loading...',
@@ -550,7 +554,7 @@ def get_real_time_ai_analysis(symbol: str, position: dict) -> dict:
         
         # Get real-time AI conversation
         conversation_response = requests.post(
-            f"http://localhost:8000/api/ai-analysis", 
+            f"{BACKEND_URL}/api/ai-analysis", 
             json={
                 'symbol': symbol,
                 'context': f"Current price: ${position['current_price']:.2f}, P&L: {position['unrealized_plpc']:+.1f}%, Market value: ${position['market_value']:,.0f}"
@@ -790,7 +794,7 @@ def get_time_until_market():
 def check_backend_status():
     """Check if the real AI backend is running"""
     try:
-        response = requests.get("http://localhost:8000/", timeout=5)
+        response = requests.get(f"{BACKEND_URL}/", timeout=5)
         if response.status_code == 200:
             data = response.json()
             return {
@@ -835,13 +839,13 @@ def load_portfolio_data():
     """Load enhanced portfolio data with AI analysis from backend"""
     try:
         # Try enhanced endpoint first (includes AI analysis)
-        enhanced_response = requests.get("http://localhost:8000/api/portfolio/enhanced-positions", timeout=60)
+        enhanced_response = requests.get(f"{BACKEND_URL}/api/portfolio/enhanced-positions", timeout=60)
         
         if enhanced_response.status_code == 200:
             enhanced_data = enhanced_response.json()
             
             # Get performance data
-            performance_response = requests.get("http://localhost:8000/api/portfolio/performance", timeout=10)
+            performance_response = requests.get(f"{BACKEND_URL}/api/portfolio/performance", timeout=10)
             performance_data = performance_response.json() if performance_response.status_code == 200 else {}
             
             return {
@@ -854,8 +858,8 @@ def load_portfolio_data():
             }
         
         # Fallback to basic endpoint if enhanced fails
-        positions_response = requests.get("http://localhost:8000/api/portfolio/positions", timeout=10)
-        performance_response = requests.get("http://localhost:8000/api/portfolio/performance", timeout=10)
+        positions_response = requests.get(f"{BACKEND_URL}/api/portfolio/positions", timeout=10)
+        performance_response = requests.get(f"{BACKEND_URL}/api/portfolio/performance", timeout=10)
         
         if positions_response.status_code == 200 and performance_response.status_code == 200:
             positions_data = positions_response.json()
@@ -891,8 +895,8 @@ def load_opportunities():
     """Load real opportunity data from existing discovery engines"""
     try:
         # Call the real discovery endpoints
-        catalyst_response = requests.get("http://localhost:8000/api/catalyst-discovery", timeout=60)
-        alpha_response = requests.get("http://localhost:8000/api/alpha-discovery", timeout=60)
+        catalyst_response = requests.get(f"{BACKEND_URL}/api/catalyst-discovery", timeout=60)
+        alpha_response = requests.get(f"{BACKEND_URL}/api/alpha-discovery", timeout=60)
         
         opportunities = []
         
@@ -1634,7 +1638,7 @@ def execute_alpaca_trade(trade_params, portfolio_data):
                 }
                 
                 response = requests.post(
-                    "http://localhost:8000/api/trades/execute",
+                    f"{BACKEND_URL}/api/trades/execute",
                     json=order_data,
                     timeout=10
                 )
@@ -1666,7 +1670,7 @@ def execute_alpaca_trade(trade_params, portfolio_data):
                 }
                 
                 response = requests.post(
-                    "http://localhost:8000/api/trades/execute",
+                    f"{BACKEND_URL}/api/trades/execute",
                     json=order_data,
                     timeout=10
                 )
@@ -1758,7 +1762,7 @@ def display_portfolio_positions(portfolio_data):
             with st.spinner("Analyzing portfolio for optimization opportunities..."):
                 try:
                     response = requests.post(
-                        "http://localhost:8000/api/portfolio/replacement-analysis",
+                        f"{BACKEND_URL}/api/portfolio/replacement-analysis",
                         json={},
                         timeout=30
                     )
@@ -1796,7 +1800,7 @@ def display_basic_portfolio_position(pos, index):
                 with st.spinner(f"Getting AI analysis for {pos['symbol']}..."):
                     try:
                         response = requests.post(
-                            "http://localhost:8000/api/stocks/enhanced-analysis",
+                            f"{BACKEND_URL}/api/stocks/enhanced-analysis",
                             json={"symbol": pos['symbol']},
                             timeout=15
                         )
@@ -1957,7 +1961,7 @@ def run_ai_analysis(symbol):
     try:
         with st.spinner(f"Running AI analysis for {symbol}..."):
             response = requests.post(
-                "http://localhost:8000/api/ai-analysis",
+                f"{BACKEND_URL}/api/ai-analysis",
                 json={"symbol": symbol, "context": "Portfolio analysis from Streamlit"},
                 timeout=30
             )
@@ -2016,7 +2020,7 @@ def run_detailed_ai_analysis(symbol):
         with st.spinner(f"Running comprehensive AI analysis for {symbol}..."):
             # Use memory-enhanced AI analysis endpoint
             response = requests.post(
-                "http://localhost:8000/api/ai-analysis-with-memory",
+                f"{BACKEND_URL}/api/ai-analysis-with-memory",
                 json={
                     "symbol": symbol, 
                     "context": f"Comprehensive portfolio analysis for {symbol}. Include current thesis, performance analysis, and future recommendations based on historical memory."
@@ -2125,7 +2129,7 @@ def display_memory_analysis(symbol):
     
     try:
         # Get memory summary from backend
-        response = requests.get(f"http://localhost:8000/api/memory/summary?days=90", timeout=10)
+        response = requests.get(f"{BACKEND_URL}/api/memory/summary?days=90", timeout=10)
         
         if response.status_code == 200:
             memory_data = response.json()
@@ -2379,7 +2383,7 @@ def get_ai_system_status(portfolio_data):
         positions = portfolio_data.get('positions', [])
         
         # Get cached portfolio baseline (INSTANT - no loading delay!)
-        portfolio_baseline_response = requests.get("http://localhost:8000/api/baselines/portfolio", timeout=10)
+        portfolio_baseline_response = requests.get(f"{BACKEND_URL}/api/baselines/portfolio", timeout=10)
         portfolio_baseline = {}
         if portfolio_baseline_response.status_code == 200:
             baseline_data = portfolio_baseline_response.json()
@@ -2726,7 +2730,7 @@ def display_system_quick_actions(system_status, portfolio_data):
     
     with col1:
         if st.button("💾 Save Daily Snapshot", use_container_width=True):
-            response = requests.post("http://localhost:8000/api/memory/daily-snapshot", timeout=10)
+            response = requests.post(f"{BACKEND_URL}/api/memory/daily-snapshot", timeout=10)
             if response.status_code == 200:
                 st.success("✅ Daily snapshot saved!")
             else:
