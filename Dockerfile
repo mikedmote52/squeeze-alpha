@@ -29,5 +29,9 @@ EXPOSE 8501
 # Health check
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-# Run streamlit
-CMD ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Create startup script
+RUN echo '#!/bin/bash\npython real_ai_backend.py &\nstreamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0' > /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Run both backend and frontend
+CMD ["/app/start.sh"]
