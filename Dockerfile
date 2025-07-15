@@ -1,4 +1,4 @@
-# Use Python 3.11 base image (has distutils)
+# Use Python 3.11 base image (has distutils - fixes Railway Python 3.12 issue)
 FROM python:3.11-slim
 
 # Set working directory
@@ -11,11 +11,14 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
+# Upgrade pip and install wheel/setuptools first
+RUN pip install --upgrade pip setuptools wheel
+
 # Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies with verbose output
+RUN pip install --no-cache-dir --verbose -r requirements.txt
 
 # Copy application code
 COPY . .
