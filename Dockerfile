@@ -30,21 +30,12 @@ EXPOSE 8501
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
 # Create startup script that runs both services
-COPY <<EOF /app/start.sh
-#!/bin/bash
-echo "Starting trading backend..."
-python real_ai_backend.py &
-BACKEND_PID=$!
-
-echo "Starting Streamlit frontend..."
-streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true &
-FRONTEND_PID=$!
-
-# Wait for both processes
-wait $BACKEND_PID $FRONTEND_PID
-EOF
-
-RUN chmod +x /app/start.sh
+RUN echo '#!/bin/bash' > /app/start.sh && \
+    echo 'echo "Starting trading backend..."' >> /app/start.sh && \
+    echo 'python real_ai_backend.py &' >> /app/start.sh && \
+    echo 'echo "Starting Streamlit frontend..."' >> /app/start.sh && \
+    echo 'streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true' >> /app/start.sh && \
+    chmod +x /app/start.sh
 
 # Run both backend and frontend
 CMD ["/app/start.sh"]
