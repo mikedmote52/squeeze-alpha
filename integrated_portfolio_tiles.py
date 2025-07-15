@@ -401,14 +401,14 @@ def get_real_time_ai_analysis(symbol, position):
         if hasattr(st.session_state, f'ai_analysis_{symbol}'):
             return getattr(st.session_state, f'ai_analysis_{symbol}')
         
-        # Fallback to basic analysis
-        return {
-            'claude_score': '⏸️ Hold (20%)',
-            'gpt_score': '🔄 Hold Position (20%)',
-            'actionable_recommendation': 'Monitor position and market conditions',
-            'risk_analysis': 'Standard market risk applies',
-            'projected_price': position.get('current_price', 0)
-        }
+        # Get real AI analysis using direct service
+        from direct_alpaca_service import get_ai_analysis_for_stock
+        analysis = get_ai_analysis_for_stock(symbol)
+        
+        # Cache the analysis
+        setattr(st.session_state, f'ai_analysis_{symbol}', analysis)
+        
+        return analysis
     except Exception as e:
         return {
             'claude_score': 'Analyzing...',
@@ -435,38 +435,23 @@ def execute_trade(symbol, quantity, side):
         
         # Show loading message
         with st.spinner(f"Executing {side.upper()} order for {quantity} shares of {symbol}..."):
-            response = requests.post(
-                f"{BACKEND_URL}/api/trades/execute",
-                json=order_data,
-                timeout=30
-            )
+            from direct_alpaca_service import execute_trade_order
+            result = execute_trade_order(symbol, quantity, side)
         
-        if response.status_code == 201:
-            result = response.json()
+        if 'error' in result:
+            st.error(f"❌ Trade failed: {result['error']}")
+        else:
             st.success(f"✅ {side.upper()} order executed successfully!")
             st.success(f"📊 {quantity} shares of {symbol} at market price")
             
             # Show order details if available
-            if 'order_id' in result:
-                st.info(f"Order ID: {result['order_id']}")
+            if 'id' in result:
+                st.info(f"Order ID: {result['id']}")
             
             # Refresh portfolio data
-            st.session_state.portfolio_data = None
+            if 'portfolio_data' in st.session_state:
+                del st.session_state.portfolio_data
             st.rerun()
-            
-        elif response.status_code == 400:
-            error_msg = response.json().get('detail', 'Bad request')
-            st.error(f"❌ Trade rejected: {error_msg}")
-        elif response.status_code == 422:
-            error_msg = response.json().get('detail', 'Invalid order parameters')
-            st.error(f"❌ Order validation failed: {error_msg}")
-        else:
-            st.error(f"❌ Trade failed (HTTP {response.status_code}): {response.text}")
-            
-    except requests.exceptions.Timeout:
-        st.error("❌ Trade execution timed out. Please check your account and try again.")
-    except requests.exceptions.ConnectionError:
-        st.error("❌ Unable to connect to trading backend. Please check system status.")
     except Exception as e:
         st.error(f"❌ Trade execution error: {str(e)}")
         

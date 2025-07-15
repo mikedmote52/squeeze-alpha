@@ -1,1 +1,1 @@
-web: python3 start_system.py
+web: streamlit run streamlit_app.py --server.port $PORT --server.address 0.0.0.0

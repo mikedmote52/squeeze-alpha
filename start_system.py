@@ -39,21 +39,7 @@ def run_frontend():
     ])
 
 if __name__ == "__main__":
-    # If deployment PORT is set, run appropriate service
-    if os.getenv("PORT"):
-        # For render deployment - run backend on main port
-        print("🚀 Production deployment - starting backend")
-        run_backend()
-    else:
-        # For local development - run both
-        print("🔧 Local development - starting both services")
-        
-        # Start backend in background
-        backend_thread = threading.Thread(target=run_backend, daemon=True)
-        backend_thread.start()
-        
-        # Wait for backend to start
-        time.sleep(5)
-        
-        # Start frontend
-        run_frontend()
+    # For Render deployment, just run the backend
+    # The frontend will connect to the backend API
+    print("🚀 Production deployment - starting backend only")
+    run_backend()

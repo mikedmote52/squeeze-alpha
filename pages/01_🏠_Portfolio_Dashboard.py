@@ -30,10 +30,11 @@ st.set_page_config(
 )
 
 def load_portfolio_data():
-    """Load real portfolio data from backend"""
+    """Load real portfolio data directly from Alpaca API"""
     try:
-        positions_response = requests.get(f"{BACKEND_URL}/api/portfolio/positions", timeout=10)
-        performance_response = requests.get(f"{BACKEND_URL}/api/portfolio/performance", timeout=10)
+        # Try backend first, then fall back to direct API
+        positions_response = requests.get(f"{BACKEND_URL}/api/portfolio/positions", timeout=5)
+        performance_response = requests.get(f"{BACKEND_URL}/api/portfolio/performance", timeout=5)
         
         if positions_response.status_code == 200 and performance_response.status_code == 200:
             positions_data = positions_response.json()
@@ -46,11 +47,15 @@ def load_portfolio_data():
                 'source': positions_data.get('source', 'Unknown')
             }
         else:
-            return None
+            # Fallback to direct Alpaca API
+            from direct_alpaca_service import get_real_portfolio_positions
+            return get_real_portfolio_positions()
             
     except Exception as e:
-        st.error(f"Failed to load portfolio data: {e}")
-        return None
+        st.info(f"Using direct Alpaca API - Backend: {e}")
+        # Fallback to direct Alpaca API
+        from direct_alpaca_service import get_real_portfolio_positions
+        return get_real_portfolio_positions()
 
 def create_portfolio_pie_chart(positions):
     """Create portfolio allocation pie chart"""
