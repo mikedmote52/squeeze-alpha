@@ -15,103 +15,114 @@ import time
 # Add core modules
 sys.path.append('./core')
 
+# CRITICAL: Import no-mock-data enforcer
+from no_mock_data_enforcer import get_validated_portfolio, validate_no_mock_data, enforcer
+
 app = Flask(__name__)
 
-# Your actual portfolio holdings - NO FAKE DATA
-ACTUAL_PORTFOLIO = [
-    {
-        "symbol": "AMD",
-        "qty": 100,
-        "current_price": 125.50,
-        "cost_basis": 120.00,
-        "market_value": 12550.00,
-        "unrealized_pl": 550.00,
-        "unrealized_plpc": 4.58,
-        "day_change": 2.50,
-        "day_change_percent": 2.03
-    },
-    {
-        "symbol": "NVAX", 
-        "qty": 200,
-        "current_price": 45.00,
-        "cost_basis": 50.00,
-        "market_value": 9000.00,
-        "unrealized_pl": -1000.00,
-        "unrealized_plpc": -10.00,
-        "day_change": -1.50,
-        "day_change_percent": -3.23
-    },
-    {
-        "symbol": "WOLF",
-        "qty": 150,
-        "current_price": 25.00,
-        "cost_basis": 22.00,
-        "market_value": 3750.00,
-        "unrealized_pl": 450.00,
-        "unrealized_plpc": 13.64,
-        "day_change": 0.75,
-        "day_change_percent": 3.09
-    },
-    {
-        "symbol": "BTBT",
-        "qty": 500,
-        "current_price": 8.50,
-        "cost_basis": 9.00,
-        "market_value": 4250.00,
-        "unrealized_pl": -250.00,
-        "unrealized_plpc": -5.56,
-        "day_change": -0.25,
-        "day_change_percent": -2.86
-    },
-    {
-        "symbol": "CRWV",
-        "qty": 300,
-        "current_price": 12.00,
-        "cost_basis": 10.50,
-        "market_value": 3600.00,
-        "unrealized_pl": 450.00,
-        "unrealized_plpc": 14.29,
-        "day_change": 0.50,
-        "day_change_percent": 4.35
-    },
-    {
-        "symbol": "VIGL",
-        "qty": 100,
-        "current_price": 35.00,
-        "cost_basis": 32.00,
-        "market_value": 3500.00,
-        "unrealized_pl": 300.00,
-        "unrealized_plpc": 9.38,
-        "day_change": 1.25,
-        "day_change_percent": 3.70
-    },
-    {
-        "symbol": "SMCI",
-        "qty": 75,
-        "current_price": 180.00,
-        "cost_basis": 175.00,
-        "market_value": 13500.00,
-        "unrealized_pl": 375.00,
-        "unrealized_plpc": 2.86,
-        "day_change": -2.50,
-        "day_change_percent": -1.37
-    },
-    {
-        "symbol": "SOUN",
-        "qty": 400,
-        "current_price": 15.50,
-        "cost_basis": 14.00,
-        "market_value": 6200.00,
-        "unrealized_pl": 600.00,
-        "unrealized_plpc": 10.71,
-        "day_change": 0.75,
-        "day_change_percent": 5.08
-    }
-]
+# SYSTEM PROTECTION: NO HARDCODED PORTFOLIO DATA
+# All portfolio data MUST come from real Alpaca API through the enforcer
+
+def get_safe_portfolio_data():
+    """
+    Gets portfolio data safely through the no-mock-data enforcer
+    """
+    return get_validated_portfolio()
 
 @app.route('/')
 def home():
     """Main dashboard"""
+    # Get validated portfolio data through enforcer
+    portfolio_response = get_safe_portfolio_data()
+    
+    if portfolio_response['status'] == 'connecting':
+        # Show connection status instead of mock data
+        return render_template_string("""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🚀 AI Trading System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: white; 
+            text-align: center;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { margin-bottom: 30px; }
+        .header h1 { color: #00D4AA; font-size: 2.5em; margin: 0; }
+        .status { 
+            background: #333; 
+            padding: 30px; 
+            border-radius: 10px; 
+            margin: 20px 0;
+        }
+        .connecting { border-left: 4px solid #FF9800; }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #333;
+            border-left: 4px solid #00D4AA;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .protection-notice {
+            background: #2d5a2d;
+            border: 2px solid #4CAF50;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI Trading System</h1>
+            <p>{{ datetime.now().strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        </div>
+        
+        <div class="status connecting">
+            <div class="spinner"></div>
+            <h2>🔌 Connecting to Real Alpaca API</h2>
+            <p>System is establishing secure connection to your live trading account...</p>
+            <p><strong>NO MOCK DATA WILL BE SHOWN</strong></p>
+        </div>
+        
+        <div class="protection-notice">
+            <h3>✅ System Protection Active</h3>
+            <p>• Zero tolerance for mock/fake data</p>
+            <p>• Real Alpaca API connection only</p>
+            <p>• No hardcoded portfolio positions</p>
+            <p>• Authentic trading data enforced</p>
+        </div>
+        
+        <div style="margin-top: 30px; color: #666;">
+            <p>🔄 Refreshing connection every 10 seconds</p>
+            <p>📱 Mobile optimized • 🌐 Access from anywhere</p>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-refresh every 10 seconds to check for real data
+        setInterval(() => {
+            location.reload();
+        }, 10000);
+    </script>
+</body>
+</html>
+        """, datetime=datetime)
+    
+    # If we have real data, show it
     return render_template_string("""
 <!DOCTYPE html>
 <html>
@@ -282,17 +293,29 @@ def home():
     </script>
 </body>
 </html>
-    """, portfolio=ACTUAL_PORTFOLIO, datetime=datetime)
+    """, portfolio=portfolio_response['data'], datetime=datetime)
 
 @app.route('/api/portfolio')
 def api_portfolio():
-    """API endpoint for portfolio data"""
+    """API endpoint for portfolio data - NO MOCK DATA ALLOWED"""
+    portfolio_response = get_safe_portfolio_data()
+    
+    if portfolio_response['status'] == 'connecting':
+        return jsonify({
+            "status": "connecting",
+            "data": [],
+            "message": "Connecting to real Alpaca API - no mock data available",
+            "timestamp": datetime.now().isoformat()
+        })
+    
+    portfolio_data = portfolio_response['data']
     return jsonify({
         "status": "success",
-        "data": ACTUAL_PORTFOLIO,
+        "data": portfolio_data,
+        "source": portfolio_response['source'],
         "timestamp": datetime.now().isoformat(),
-        "total_value": sum(stock["market_value"] for stock in ACTUAL_PORTFOLIO),
-        "total_pl": sum(stock["unrealized_pl"] for stock in ACTUAL_PORTFOLIO)
+        "total_value": sum(stock["market_value"] for stock in portfolio_data) if portfolio_data else 0,
+        "total_pl": sum(stock["unrealized_pl"] for stock in portfolio_data) if portfolio_data else 0
     })
 
 @app.route('/api/status')
