@@ -253,4 +253,5 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print(f"🚀 Starting AI Trading System on port {port}")
     print("✅ System ready!")
-    app.run(host='0.0.0.0', port=port, debug=False)
+    print(f"🌐 Available at: http://0.0.0.0:{port}")
+    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
