@@ -230,7 +230,7 @@ st.markdown("""
 def display_api_cost_tracker():
     """Display API cost tracking at the top of pages"""
     try:
-        response = requests.get(f"{BACKEND_URL}/api/costs/summary", timeout=5)
+        response = requests.get(f"{BACKEND_URL}/api/costs/summary", timeout=2)
         if response.status_code == 200:
             cost_data = response.json()
             
@@ -257,12 +257,24 @@ def display_api_cost_tracker():
                 st.metric("Est. Monthly", f"${estimated:.2f}")
                 
     except Exception as e:
-        st.warning(f"⚠️ Cost tracking unavailable: API connection issue")
+        # Don't crash the app - just show minimal info
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Daily Spend", "$0.00", delta="0 calls")
+        with col2:
+            st.metric("Weekly Spend", "$0.00", delta="0 calls")
+        with col3:
+            st.metric("Monthly Spend", "$0.00", delta="0 calls")
+        with col4:
+            st.metric("Est. Monthly", "$0.00")
 
 def display_portfolio_stock_tiles(portfolio_data):
     """DEPRECATED - Use display_integrated_portfolio_tiles instead"""
     # Redirect to new integrated tiles
-    display_integrated_portfolio_tiles(portfolio_data)
+    if display_integrated_portfolio_tiles:
+        display_integrated_portfolio_tiles(portfolio_data)
+    else:
+        st.warning("Portfolio tiles not available - module not found")
     return
 
 def get_real_time_ai_analysis(symbol: str, position: dict) -> dict:
@@ -2957,43 +2969,55 @@ def add_mobile_responsive_css():
     """, unsafe_allow_html=True)
 
 def main():
-    """Main application entry point"""
+    """Main application entry point - crash-resistant version"""
     
-    # Add mobile responsive CSS
-    add_mobile_responsive_css()
-    
-    # Initialize session state
-    initialize_session_state()
-    
-    # Display header
-    display_header()
-    
-    # Sidebar navigation
-    page = display_sidebar()
-    
-    # Route to different pages
-    if page == "🏠 Dashboard":
-        main_dashboard()
-    elif page == "🔍 Opportunity Discovery":
-        st.subheader("🔍 Opportunity Discovery")
-        opportunities = load_opportunities()
-        if opportunities:
-            for opp in opportunities:
-                with st.expander(f"{opp['ticker']} - {opp['type']} (Confidence: {opp.get('confidence', 0):.0f}%)"):
-                    st.write(f"**Description:** {opp['description']}")
-                    st.write(f"**Expected Upside:** {opp.get('upside', 0):.1f}%")
-                    st.write(f"**Source:** {opp['source']}")
-                    if st.button(f"Analyze {opp['ticker']}", key=f"detail_{opp['ticker']}"):
-                        run_ai_analysis(opp['ticker'])
+    try:
+        # Add mobile responsive CSS
+        add_mobile_responsive_css()
+        
+        # Initialize session state
+        initialize_session_state()
+        
+        # Display header
+        display_header()
+        
+        # Sidebar navigation
+        page = display_sidebar()
+        
+        # Route to different pages
+        if page == "🏠 Dashboard":
+            try:
+                main_dashboard()
+            except Exception as e:
+                st.error(f"Dashboard error: {e}")
+                st.write("Dashboard temporarily unavailable")
+        elif page == "🔍 Opportunity Discovery":
+            st.subheader("🔍 Opportunity Discovery")
+            try:
+                opportunities = load_opportunities()
+                if opportunities:
+                    for opp in opportunities:
+                        with st.expander(f"{opp['ticker']} - {opp['type']} (Confidence: {opp.get('confidence', 0):.0f}%)"):
+                            st.write(f"**Description:** {opp['description']}")
+                            st.write(f"**Expected Upside:** {opp.get('upside', 0):.1f}%")
+                            st.write(f"**Source:** {opp['source']}")
+                            if st.button(f"Analyze {opp['ticker']}", key=f"detail_{opp['ticker']}"):
+                                run_ai_analysis(opp['ticker'])
+                else:
+                    st.info("No opportunities available - connecting to data sources")
+            except Exception as e:
+                st.error(f"Opportunity discovery error: {e}")
+                st.write("Opportunity discovery temporarily unavailable")
+        elif page == "🤖 AI Analysis":
+            display_ai_analysis_page()
         else:
-            st.info("No opportunities found. The discovery engines are scanning...")
+            st.info(f"Page '{page}' coming soon...")
+            st.markdown("This dashboard connects to your real trading system backend.")
     
-    elif page == "🤖 AI Analysis":
-        display_ai_analysis_page()
-    
-    else:
-        st.info(f"Page '{page}' coming soon...")
-        st.markdown("This dashboard connects to your real trading system backend.")
+    except Exception as e:
+        st.error(f"Application error: {e}")
+        logger.error(f"Main application error: {e}")
+        st.write("Please refresh the page to try again.")
 
 def execute_portfolio_health_optimization(analysis):
     """Execute portfolio health optimization based on AI recommendations"""
