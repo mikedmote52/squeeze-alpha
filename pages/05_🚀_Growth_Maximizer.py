@@ -24,16 +24,19 @@ st.set_page_config(
 
 # Safe imports from clean growth_system directory
 try:
-    from growth_system import IntegratedGrowthSystem
+    sys.path.append('./growth_system')
+    from integrated_growth_system import IntegratedGrowthSystem
     system_available = True
-except ImportError:
+except ImportError as e:
     try:
         # Fallback to direct import
+        sys.path.append('.')
         from integrated_growth_system import IntegratedGrowthSystem
         system_available = True
     except ImportError:
         system_available = False
-        st.error("Growth Maximization System not available")
+        st.error(f"Growth Maximization System not available: {e}")
+        st.info("The Growth Maximizer will be available once the system is properly deployed.")
 
 # Page header
 st.title("🚀 Growth Maximization System")
