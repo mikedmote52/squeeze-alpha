@@ -16,8 +16,6 @@ import sys
 import json
 import logging
 import requests
-from integrated_portfolio_tiles import display_integrated_portfolio_tiles
-from ai_analysis_page import display_ai_analysis_page
 
 # Add core modules to path
 sys.path.append('./core')
@@ -26,8 +24,21 @@ sys.path.append('./core')
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Backend URL configuration - connect to your real backend service
-BACKEND_URL = os.getenv('BACKEND_URL', 'https://squeeze-alpha.onrender.com')
+# Safe imports with error handling
+try:
+    from integrated_portfolio_tiles import display_integrated_portfolio_tiles
+except ImportError:
+    logger.warning("integrated_portfolio_tiles not found")
+    display_integrated_portfolio_tiles = None
+
+try:
+    from ai_analysis_page import display_ai_analysis_page
+except ImportError:
+    logger.warning("ai_analysis_page not found")
+    display_ai_analysis_page = None
+
+# Backend URL configuration - no circular reference
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 logger.info(f"Using backend URL: {BACKEND_URL}")
 
 # Configure Streamlit page
