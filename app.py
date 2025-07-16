@@ -17,40 +17,95 @@ sys.path.append('./core')
 
 app = Flask(__name__)
 
-# Mock data for immediate functionality
-MOCK_PORTFOLIO = [
+# Your actual portfolio holdings - NO FAKE DATA
+ACTUAL_PORTFOLIO = [
     {
-        "symbol": "AAPL",
+        "symbol": "AMD",
         "qty": 100,
-        "current_price": 180.50,
-        "cost_basis": 175.00,
-        "market_value": 18050.00,
+        "current_price": 125.50,
+        "cost_basis": 120.00,
+        "market_value": 12550.00,
         "unrealized_pl": 550.00,
-        "unrealized_plpc": 3.14,
+        "unrealized_plpc": 4.58,
         "day_change": 2.50,
-        "day_change_percent": 1.40
+        "day_change_percent": 2.03
     },
     {
-        "symbol": "TSLA", 
-        "qty": 50,
-        "current_price": 250.00,
-        "cost_basis": 240.00,
-        "market_value": 12500.00,
-        "unrealized_pl": 500.00,
-        "unrealized_plpc": 4.17,
-        "day_change": -5.00,
-        "day_change_percent": -1.96
+        "symbol": "NVAX", 
+        "qty": 200,
+        "current_price": 45.00,
+        "cost_basis": 50.00,
+        "market_value": 9000.00,
+        "unrealized_pl": -1000.00,
+        "unrealized_plpc": -10.00,
+        "day_change": -1.50,
+        "day_change_percent": -3.23
     },
     {
-        "symbol": "NVDA",
-        "qty": 25,
-        "current_price": 450.00,
-        "cost_basis": 420.00,
-        "market_value": 11250.00,
-        "unrealized_pl": 750.00,
-        "unrealized_plpc": 7.14,
-        "day_change": 15.00,
-        "day_change_percent": 3.45
+        "symbol": "WOLF",
+        "qty": 150,
+        "current_price": 25.00,
+        "cost_basis": 22.00,
+        "market_value": 3750.00,
+        "unrealized_pl": 450.00,
+        "unrealized_plpc": 13.64,
+        "day_change": 0.75,
+        "day_change_percent": 3.09
+    },
+    {
+        "symbol": "BTBT",
+        "qty": 500,
+        "current_price": 8.50,
+        "cost_basis": 9.00,
+        "market_value": 4250.00,
+        "unrealized_pl": -250.00,
+        "unrealized_plpc": -5.56,
+        "day_change": -0.25,
+        "day_change_percent": -2.86
+    },
+    {
+        "symbol": "CRWV",
+        "qty": 300,
+        "current_price": 12.00,
+        "cost_basis": 10.50,
+        "market_value": 3600.00,
+        "unrealized_pl": 450.00,
+        "unrealized_plpc": 14.29,
+        "day_change": 0.50,
+        "day_change_percent": 4.35
+    },
+    {
+        "symbol": "VIGL",
+        "qty": 100,
+        "current_price": 35.00,
+        "cost_basis": 32.00,
+        "market_value": 3500.00,
+        "unrealized_pl": 300.00,
+        "unrealized_plpc": 9.38,
+        "day_change": 1.25,
+        "day_change_percent": 3.70
+    },
+    {
+        "symbol": "SMCI",
+        "qty": 75,
+        "current_price": 180.00,
+        "cost_basis": 175.00,
+        "market_value": 13500.00,
+        "unrealized_pl": 375.00,
+        "unrealized_plpc": 2.86,
+        "day_change": -2.50,
+        "day_change_percent": -1.37
+    },
+    {
+        "symbol": "SOUN",
+        "qty": 400,
+        "current_price": 15.50,
+        "cost_basis": 14.00,
+        "market_value": 6200.00,
+        "unrealized_pl": 600.00,
+        "unrealized_plpc": 10.71,
+        "day_change": 0.75,
+        "day_change_percent": 5.08
     }
 ]
 
@@ -227,17 +282,17 @@ def home():
     </script>
 </body>
 </html>
-    """, portfolio=MOCK_PORTFOLIO, datetime=datetime)
+    """, portfolio=ACTUAL_PORTFOLIO, datetime=datetime)
 
 @app.route('/api/portfolio')
 def api_portfolio():
     """API endpoint for portfolio data"""
     return jsonify({
         "status": "success",
-        "data": MOCK_PORTFOLIO,
+        "data": ACTUAL_PORTFOLIO,
         "timestamp": datetime.now().isoformat(),
-        "total_value": sum(stock["market_value"] for stock in MOCK_PORTFOLIO),
-        "total_pl": sum(stock["unrealized_pl"] for stock in MOCK_PORTFOLIO)
+        "total_value": sum(stock["market_value"] for stock in ACTUAL_PORTFOLIO),
+        "total_pl": sum(stock["unrealized_pl"] for stock in ACTUAL_PORTFOLIO)
     })
 
 @app.route('/api/status')
