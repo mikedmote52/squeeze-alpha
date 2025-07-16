@@ -86,8 +86,15 @@ app.add_middleware(
 def start_streamlit():
     """Start Streamlit app in background"""
     try:
-        subprocess.run(["streamlit", "run", "streamlit_app.py", "--server.port", "8501", "--server.address", "0.0.0.0"], 
-                      check=True)
+        # Use port 8501 for Streamlit, but make it accessible
+        port = int(os.getenv("STREAMLIT_PORT", "8501"))
+        subprocess.run([
+            "streamlit", "run", "streamlit_app.py", 
+            "--server.port", str(port), 
+            "--server.address", "0.0.0.0",
+            "--server.headless", "true",
+            "--browser.gatherUsageStats", "false"
+        ], check=True)
     except Exception as e:
         logger.error(f"Failed to start Streamlit: {e}")
 
@@ -138,8 +145,26 @@ async def startup_background_tasks():
 # Add root endpoint for deployment
 @app.get("/")
 async def root():
-    """Root endpoint"""
-    return {"message": "Trading System Backend - API is running", "status": "healthy"}
+    """Root endpoint - redirect to Streamlit app"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/streamlit", status_code=307)
+
+@app.get("/streamlit")
+async def streamlit_app():
+    """Serve Streamlit app"""
+    return HTMLResponse("""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>AI Trading System</title>
+        <meta http-equiv="refresh" content="0; url=http://localhost:8501">
+    </head>
+    <body>
+        <h1>Loading AI Trading System...</h1>
+        <p>If not redirected, <a href="http://localhost:8501">click here</a></p>
+    </body>
+    </html>
+    """)
 
 @app.on_event("shutdown")
 async def shutdown_background_tasks():
