@@ -2,11 +2,9 @@ services:
   - type: web
     name: ai-trading-backend
     env: python
-    buildCommand: echo "No build required"
-    startCommand: python server.py
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run streamlit_app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
     envVars:
-      - key: PORT
-        value: "10000"
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: ALPACA_API_KEY
