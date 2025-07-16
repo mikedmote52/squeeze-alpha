@@ -3009,7 +3009,11 @@ def main():
                 st.error(f"Opportunity discovery error: {e}")
                 st.write("Opportunity discovery temporarily unavailable")
         elif page == "🤖 AI Analysis":
-            display_ai_analysis_page()
+            try:
+                display_ai_analysis_page()
+            except Exception as e:
+                st.error(f"AI Analysis error: {e}")
+                st.write("AI Analysis temporarily unavailable")
         else:
             st.info(f"Page '{page}' coming soon...")
             st.markdown("This dashboard connects to your real trading system backend.")

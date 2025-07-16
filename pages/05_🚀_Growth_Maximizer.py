@@ -45,13 +45,18 @@ st.markdown("**Maximize investment growth over short time periods**")
 if system_available:
     # Initialize system
     if 'growth_system' not in st.session_state:
-        st.session_state.growth_system = IntegratedGrowthSystem()
-        init_result = st.session_state.growth_system.initialize_system()
-        
-        if init_result['status'] == 'initialized':
-            st.success("✅ Growth Maximization System initialized successfully")
-        else:
-            st.error(f"❌ System initialization failed: {init_result.get('error', 'Unknown error')}")
+        try:
+            st.session_state.growth_system = IntegratedGrowthSystem()
+            init_result = st.session_state.growth_system.initialize_system()
+            
+            if init_result['status'] == 'initialized':
+                st.success("✅ Growth Maximization System initialized successfully")
+            else:
+                st.error(f"❌ System initialization failed: {init_result.get('error', 'Unknown error')}")
+                st.stop()
+        except Exception as e:
+            st.error(f"❌ Error initializing Growth Maximizer: {e}")
+            st.info("The Growth Maximizer system will be available once all dependencies are installed.")
             st.stop()
     
     # Main dashboard
