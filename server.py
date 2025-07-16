@@ -3,7 +3,10 @@ import http.server
 import socketserver
 from urllib.parse import urlparse
 
-PORT = int(os.environ.get('PORT', 8000))
+# Render uses PORT environment variable
+PORT = int(os.environ.get('PORT', 10000))
+print(f"Starting server on port {PORT}")
+print(f"Environment PORT: {os.environ.get('PORT', 'not set')}")
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -37,6 +40,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
-with socketserver.TCPServer(("", PORT), Handler) as httpd:
-    print(f"Server running on port {PORT}")
-    httpd.serve_forever()
+try:
+    with socketserver.TCPServer(("0.0.0.0", PORT), Handler) as httpd:
+        print(f"✅ Server successfully started on 0.0.0.0:{PORT}")
+        print(f"🌐 Access at: http://0.0.0.0:{PORT}")
+        httpd.serve_forever()
+except Exception as e:
+    print(f"❌ Server failed to start: {e}")
+    import traceback
+    traceback.print_exc()
+    exit(1)
