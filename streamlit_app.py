@@ -754,60 +754,10 @@ def display_header():
         st.session_state.auto_refresh = auto_refresh
 
 def load_portfolio_data():
-    """Load enhanced portfolio data with AI analysis from backend"""
-    try:
-        # Try enhanced endpoint first (includes AI analysis)
-        enhanced_response = requests.get(f"{BACKEND_URL}/api/portfolio/enhanced-positions", timeout=60)
-        
-        if enhanced_response.status_code == 200:
-            enhanced_data = enhanced_response.json()
-            
-            # Get performance data
-            performance_response = requests.get(f"{BACKEND_URL}/api/portfolio/performance", timeout=10)
-            performance_data = performance_response.json() if performance_response.status_code == 200 else {}
-            
-            return {
-                'positions': enhanced_data.get('positions', []),
-                'performance': performance_data,
-                'last_updated': datetime.now(),
-                'source': enhanced_data.get('source', 'AI Portfolio Intelligence'),
-                'error': enhanced_data.get('error', None),
-                'enhanced': True
-            }
-        
-        # Fallback to basic endpoint if enhanced fails
-        positions_response = requests.get(f"{BACKEND_URL}/api/portfolio/positions", timeout=10)
-        performance_response = requests.get(f"{BACKEND_URL}/api/portfolio/performance", timeout=10)
-        
-        if positions_response.status_code == 200 and performance_response.status_code == 200:
-            positions_data = positions_response.json()
-            performance_data = performance_response.json()
-            
-            return {
-                'positions': positions_data.get('positions', []),
-                'performance': performance_data,
-                'last_updated': datetime.now(),
-                'source': positions_data.get('source', 'Portfolio Analysis'),
-                'error': positions_data.get('error', None),
-                'enhanced': False
-            }
-        else:
-            # If we can get positions response but it has an error, return that info
-            if positions_response.status_code == 200:
-                positions_data = positions_response.json()
-                if 'error' in positions_data:
-                    return {
-                        'positions': [],
-                        'error': positions_data['error'],
-                        'last_updated': datetime.now(),
-                        'source': 'System Alert',
-                        'enhanced': False
-                    }
-            return None
-        
-    except Exception as e:
-        logger.error(f"Failed to load portfolio data: {e}")
-        return None
+    """Load portfolio data directly from Alpaca API"""
+    # Use direct Alpaca API - skip backend entirely
+    from direct_alpaca_service import get_real_portfolio_positions
+    return get_real_portfolio_positions()
 
 def load_opportunities():
     """Load real opportunity data from existing discovery engines"""
