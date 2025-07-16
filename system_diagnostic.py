@@ -135,7 +135,12 @@ def check_portfolio_dashboard():
     try:
         # Import and test the portfolio dashboard
         sys.path.append('./pages')
-        from pages.01_🏠_Portfolio_Dashboard import load_portfolio_data
+        # Import portfolio dashboard module
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("portfolio_dashboard", "./pages/01_🏠_Portfolio_Dashboard.py")
+        portfolio_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(portfolio_module)
+        load_portfolio_data = portfolio_module.load_portfolio_data
         
         # Test portfolio data loading
         portfolio_data = load_portfolio_data()
